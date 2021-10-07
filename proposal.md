@@ -39,7 +39,10 @@ STCV Synth
 
 
 ## Objectives
-
+The project objectives are to: 
+* David additions
+* David additions
+* To employ machine learning and computer vision to provide a controller interface for users to control the application 
 
 ## Equipment required and a diagram of the proposed architecture
 
