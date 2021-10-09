@@ -3,22 +3,18 @@ import sys
 import time
 
 sys.path.append('lib')
-from scales import *
 from synth import *
 
 
 def main():
     synth = Synth()
 
-    print_scales()
-
     try:
         while True:
-            f = random.randrange(220, 880)
-            print(f"Oscillator Frequency: {f}")
-            synth.pitch(f)
+            scale_step = random.choice(synth.scale)
+            synth.set_freq(scale_step)
             synth.play()
-            time.sleep(0.5)
+            time.sleep(0.3)
 
     except KeyboardInterrupt:
         synth.stop()

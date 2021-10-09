@@ -1,6 +1,8 @@
+import numpy as np
 from pyo import *
 
-BASE_NOTE = 110
+# Local files
+from scales import *
 
 class Synth():
 
@@ -27,9 +29,14 @@ class Synth():
         # Initialize oscillator
         self.osc = Sine(mul=self.amp_env).out()
 
+        self.set_base()
 
-    def pitch(self, freq):
-        self.osc.freq = freq
+        self.select_scale()
+
+    def set_freq(self, scale_step):
+        f = float(self.base * 2 ** (scale_step / 12))
+        print(f"Oscillator Frequency: {f}")
+        self.osc.freq = f
 
     def play(self):
         # Play the envelope generator
@@ -38,3 +45,43 @@ class Synth():
     def stop(self):
         # Stop the server
         self.server.stop()
+
+    def set_base(self):
+        # The base is the lowest possible note of the synth
+        option = input("""
+        Select lowest frequency option:
+            1 = 110Hz
+            2 = 220Hz
+            3 = 440Hz
+        (Note: Any other input will default to 220Hz)
+        """)
+
+        if option == 1: freq = 110
+        elif option == 3: freq = 440
+        else: freq = 220
+
+        self.base = freq
+
+    def select_scale(self):
+        print_scales()
+
+        while True:
+            scale = input("Select your scale (type the name): ")
+            if scale in scales.keys():
+                break
+            else:
+                print("Please input an available scale.")
+
+        while True:
+            n_octaves = int(input("Select number of octaves: "))
+            if n_octaves >= 1 or n_octaves <= 8:
+                break
+            else:
+                print("Please choose a number between 1 and 8 inclusive.")
+
+        # Extend number of steps in the scale to match the number of octaves
+        self.scale = np.hstack(
+            [np.hstack(scales[scale]) + i * 12 for i in range(n_octaves)]
+        )
+        
+        print(self.scale)
