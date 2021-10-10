@@ -113,6 +113,8 @@ The required equipment includes:
 
 The following diagram demonstrates the components:
 
+![STCV Diagram](./media/dgmd-14_final_project_01.png)
+
 
 ## Proof of Concept or Minimum Value Product
 
