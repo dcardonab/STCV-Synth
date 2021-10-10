@@ -1,22 +1,17 @@
 # Final Project Proposal
 
-## Notes to keep in mind (DELETE BEFORE SUBMITTING)
-
-* The project delivered should demonstrate the process of design, testing and proving the concept of the idea proposed.
-
-
 ## Title
 
 STCV Synth
 
 
-## Team members
+## Team Members
 
 * David Cardona
 * Robert Fischer
 
 
-## Motivation and literature research (inspiration on similar projects)
+## Motivation and Literature Research
 
 * [Genki Instruments - Wave](https://genkiinstruments.com/products/wave)
 * [ReacTIVision](http://reactivision.sourceforge.net)
@@ -43,7 +38,7 @@ STCV Synth
 
 
 
-## Project category/categories
+## Project Categories
 
 * Embedded Machine Learning application
 * Embedded Data Algorithmic application
@@ -77,12 +72,15 @@ The program will be able to be run from a computer or from an embedded system su
 
 The project's objectives are to:
 
-* Provide alternative ways of creative musical expression through the use of Wearables and Computer Vision
+* Provide alternative ways of creative musical expression through the use of Wearables and Computer Vision.
+
 * Implement an audio synthesizer generator using the Python Pyo library, created by Olivier Bélanger.
+
 * Setup controllers for interfacing with this generator, specifically:
     * Employ machine learning and computer vision to provide trigger and switch gestures.
     * Utilize SensorTile via BLE to provide continuous controller data.
-* Run project on an embedded system, namely the NVIDIA Jetson Nano (4GB version), for portability
+
+* Run project on an embedded system, namely the NVIDIA Jetson Nano (4GB version), for portability.
 
 
 ## Equipment Required
@@ -109,7 +107,7 @@ The required equipment includes:
 * Note that it will be possible to run the program from a computer that allows for the software dependencies (see requirements.txt or README.md), and that has a camera.
 
 
-# Diagram of the proposed architecture
+# Proposed Architecture Diagram
 
 The following diagram demonstrates the components:
 
@@ -118,11 +116,26 @@ The following diagram demonstrates the components:
 
 ## Proof of Concept or Minimum Value Product
 
+**Minimum Value Product**
+
+* Portable and computer synthesizer controlled by the ST using BLE and by CV gestures.
+
+**Stretch Goals**
+
+* Visualization of the incomining data streams when a screen is attached to NVIDIA Jetson Nano or when running program on a computer.
+
 
 ## Final Project Deliverable
 
+The various deliverables will include:
 
-## Workplan with a milestone for each week
+* Audio recording example
+* Repo containing code and documentation
+* Trained CV ML model (?)
+* Video demonstration
+
+
+## Weekly Milestones Workplan
 
 | Week |    Date      | Deliverable                                       |
 | ---: |    :----:    | :----                                             |
@@ -131,8 +144,8 @@ The following diagram demonstrates the components:
 | 3    | Oct 26, 2021 | Implement and parse BLE GATT in real-time         |
 | 4    | Nov  2, 2021 | Auto-Connect to ST via BLE upon launching script  |
 | 5    | Nov  9, 2021 | Find ST ranges that are relevant to the synth     |
-| 6    | Nov 16, 2021 | 
-| 7    | Nov 23, 2021 |
-| 8    | Nov 30, 2021 |
-| 9    | Dec  7, 2021 |
-| 10   | Dec 14, 2021 | Final Deliverable 
+| 6    | Nov 16, 2021 | Add CV abstraction and incorporate data stream    |
+| 7    | Nov 23, 2021 | Add ML model (?)                                  |
+| 8    | Nov 30, 2021 | Define CV gestures to control synth               |
+| 9    | Dec  7, 2021 | Add audio export feat. and test all components    |
+| 10   | Dec 14, 2021 | Final Deliverable                                 |

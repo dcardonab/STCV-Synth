@@ -2,11 +2,19 @@
 
 ## Synth
 
+* Add event handler
+
 * Add feature to export .wav files after every execution. Perhaps controlled by a CV gesture to start/stop recording?
+
 
 ## ST Implementation
 
 * Create BLE abstraction (pygatt?)
+
+* Parse incoming data
+
+* Determine what parameters will control what portions of the synth
+
 
 ## CV Implementation
 
@@ -25,6 +33,7 @@
     * If the final product will be screenless, then should it just go to next/previous scale?
     
 * Consider adding gestures for adding effects
+
 
 ## Secondary (Optional)
 
