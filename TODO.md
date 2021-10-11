@@ -6,6 +6,8 @@
 
 * Add feature to export .wav files after every execution. Perhaps controlled by a CV gesture to start/stop recording?
 
+* Add modes of operation based on controller detected upon launch
+
 
 ## ST Implementation
 
@@ -33,6 +35,9 @@
     * If the final product will be screenless, then should it just go to next/previous scale?
     
 * Consider adding gestures for adding effects
+
+* Add continuous control
+    * Use sign language gestures + continuous motion/magnitude data to control parameters
 
 
 ## Secondary (Optional)

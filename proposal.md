@@ -120,9 +120,20 @@ The following diagram demonstrates the components:
 
 * Portable and computer synthesizer controlled by the ST using BLE and by CV gestures.
 
+* Trained ML model that recognizes the number of fingers in the camera’s field of view, as well as sign language.
+
+* Algorithm to map data recorded from the ST into ranges that produce musical output from the generator.
+
+
 **Stretch Goals**
 
 * Visualization of the incomining data streams when a screen is attached to NVIDIA Jetson Nano or when running program on a computer.
+
+* Implement continuous control via CV so the synth can operate without the ST controller.
+
+* Implement tapping gesture detection via the ST to enable control without the CV controller.
+
+* Incorporate MIDI stream outputs for enabling control of other generators and synthesizers via the MIDI protocol.
 
 
 ## Final Project Deliverable
@@ -137,15 +148,15 @@ The various deliverables will include:
 
 ## Weekly Milestones Workplan
 
-| Week |    Date      | Deliverable                                       |
-| ---: |    :----:    | :----                                             |
-| 1    | Oct 12, 2021 | Project Proposal                                  |
-| 2    | Oct 19, 2021 | Ensure Pyo runs on Nano *if not, consider CSound* |
-| 3    | Oct 26, 2021 | Implement and parse BLE GATT in real-time         |
-| 4    | Nov  2, 2021 | Auto-Connect to ST via BLE upon launching script  |
-| 5    | Nov  9, 2021 | Find ST ranges that are relevant to the synth     |
-| 6    | Nov 16, 2021 | Add CV abstraction and incorporate data stream    |
-| 7    | Nov 23, 2021 | Add ML model (?)                                  |
-| 8    | Nov 30, 2021 | Define CV gestures to control synth               |
-| 9    | Dec  7, 2021 | Add audio export feat. and test all components    |
-| 10   | Dec 14, 2021 | Final Deliverable                                 |
+| Week |    Date      | Deliverable                                              |
+| ---: |    :----:    | :----                                                    |
+| 1    | Oct 12, 2021 | Project Proposal                                         |
+| 2    | Oct 19, 2021 | Ensure Pyo runs on Nano *if not, consider CSound*        |
+| 3    | Oct 26, 2021 | Implement and parse BLE GATT in real-time                |
+| 4    | Nov  2, 2021 | Auto-Connect to ST via BLE upon launch; first ML model   |
+| 5    | Nov  9, 2021 | Set ST ranges for synth control; add CV model gestures   |
+| 6    | Nov 16, 2021 | Add CV abstraction and incorporate data stream           |
+| 7    | Nov 23, 2021 | Add ML model final version; implement continuous CV data |
+| 8    | Nov 30, 2021 | Define CV gestures to control synth                      |
+| 9    | Dec  7, 2021 | Add audio export feat; test all components               |
+| 10   | Dec 14, 2021 | Final Deliverable                                        |
