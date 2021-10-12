@@ -23,8 +23,21 @@ scales = {
     '5th_pentatonic':   [0, 2, 5, 7, 9]
 }
 
-def print_scales():
-    # List available scales
-    print("\nIndex of scales")
-    [print(f"\t{k}") for k in scales.keys()]
-    print()
+# BPM sub-divisions
+sub_divisions = {
+    '1': 0.25,
+    '2': 0.5,
+    '3': 0.75,
+    '4': 1,
+    '6': 1.5,
+    '8': 2,
+    '12': 3,
+    '16': 4
+}
+
+# Frequency bases in Hz
+bases = {
+    '1': 110,
+    '2': 220,
+    '3': 440
+}

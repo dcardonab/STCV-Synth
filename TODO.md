@@ -8,6 +8,8 @@
 
 * Add modes of operation based on controller detected upon launch
 
+* Add events to control BPM subdivision
+
 
 ## ST Implementation
 

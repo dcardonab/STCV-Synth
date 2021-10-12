@@ -2,7 +2,8 @@ import numpy as np
 from pyo import *
 
 # Local files
-from scales import *
+from utils import print_scales
+
 
 class Synth():
 
@@ -20,11 +21,11 @@ class Synth():
 
         # Create an envelope generator
         self.amp_env = Adsr(attack=0.01,
-                        decay=0.2,
-                        sustain=0.5,
-                        release=0.1,
-                        dur=0.5,        # duration is expressed in seconds
-                        mul=0.5)
+                            decay=0.2,
+                            sustain=0.5,
+                            release=0.1,
+                            dur=0.5,        # duration is expressed in seconds
+                            mul=0.5)
 
         # Initialize oscillator
         self.osc = Sine(mul=self.amp_env).out()
@@ -56,9 +57,10 @@ class Synth():
         (Note: Any other input will default to 220Hz)
         """)
 
-        if option == 1: freq = 110
-        elif option == 3: freq = 440
-        else: freq = 220
+        if option in bases.keys():
+            freq = bases[option]
+        else:
+            freq = bases['2']
 
         self.base = freq
 
@@ -83,5 +85,5 @@ class Synth():
         self.scale = np.hstack(
             [np.hstack(scales[scale]) + i * 12 for i in range(n_octaves)]
         )
-        
+
         print(self.scale)
