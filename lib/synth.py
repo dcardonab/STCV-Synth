@@ -2,6 +2,7 @@ import numpy as np
 from pyo import *
 
 # Local files
+from constants import *
 from utils import print_scales
 
 

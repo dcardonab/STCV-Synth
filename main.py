@@ -4,6 +4,7 @@ import time
 
 sys.path.append('lib')
 from synth import *
+from utils import *
 
 
 def main():
