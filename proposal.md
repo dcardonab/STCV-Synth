@@ -13,6 +13,7 @@ STCV Synth
 
 ## Motivation and Literature Research
 
+* [MiMU Gloves](https://mimugloves.com)
 * [Genki Instruments - Wave](https://genkiinstruments.com/products/wave)
 * [ReacTIVision](http://reactivision.sourceforge.net)
 * [Embedded CSound on a BeagleBone or a Raspberry PI](http://www.csounds.com/journal/issue18/beagle_pi.html) (*Note that STCV Synth uses Pyo, but this is a reference in a lower-level language*)
