@@ -1,5 +1,6 @@
 import numpy as np
 from pyo import *
+from sys import platform
 
 # Local files
 from constants import *
@@ -9,12 +10,23 @@ from utils import print_scales
 class Synth():
 
     def __init__(self):
+        # Create a server to handle all communications with
+        # Portaudio and Portaudio MIDI
+        self.server = Server()
+
+        # Select the device with the 'default' name
+        if platform == "linux":
+            pa_list_devices()
+            print("Select device with 'default' name")
+            device = int(input("Select audio device: "))
+            self.server.setOutputDevice(device)
+
         # the boot() function boots the server
         # booting the server includes:
         #     - opening Audio and MIDI interfaces
         #     - setup of Sample Rate and Number of Channels
-        self.server = Server().boot()
-        print("\tPyo server initialized")
+        self.server.boot()
+        print("\n\tPyo server initialized")
 
         # Start audio processing in the server
         self.server.start()
@@ -37,7 +49,7 @@ class Synth():
 
     def set_freq(self, scale_step):
         f = float(self.base * 2 ** (scale_step / 12))
-        print(f"Oscillator Frequency: {f}")
+        print(f"Oscillator Frequency: {f:.2f}")
         self.osc.freq = f
 
     def play(self):
