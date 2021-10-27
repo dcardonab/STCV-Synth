@@ -57,6 +57,7 @@ class Synth():
         self.amp_env.play()
 
     def stop(self):
+        print("Shutting down the audio server.\n")
         # Stop the server
         self.server.stop()
 

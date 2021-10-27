@@ -29,7 +29,7 @@ def set_pulse_rate():
     else:
         pulse_rate = bpm / sub_divisions['16']
 
-    print(f"Pulse rate = {pulse_rate}")
+    print(f"Pulse rate = {pulse_rate} seconds")
 
     return pulse_rate
 

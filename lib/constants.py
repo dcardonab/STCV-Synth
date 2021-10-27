@@ -20,7 +20,9 @@ scales = {
     '2nd_pentatonic':   [0, 2, 4, 7, 9],
     '3rd_pentatonic':   [0, 2, 5, 7, 10],
     '4th_pentatonic':   [0, 3, 5, 8, 10],
-    '5th_pentatonic':   [0, 2, 5, 7, 9]
+    '5th_pentatonic':   [0, 2, 5, 7, 9],
+
+    'whole_tone': [0, 2, 4, 6, 8, 10]
 }
 
 # BPM sub-divisions

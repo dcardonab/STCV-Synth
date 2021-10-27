@@ -12,6 +12,7 @@ def main():
 
     pulse_rate = set_pulse_rate()
 
+    print("\n### Starting performance ###")
     try:
         while True:
             scale_step = random.choice(synth.scale)
@@ -20,6 +21,9 @@ def main():
             time.sleep(pulse_rate)
 
     except KeyboardInterrupt:
+        print("\n\n### STCV-Synth was stopped ###")
+
+    finally:
         synth.stop()
 
 
