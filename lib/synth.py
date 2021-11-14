@@ -4,12 +4,20 @@ from sys import platform
 
 # Local files
 from constants import *
-from utils import print_scales
+
+
+DEF_BASE_MULTIPLIER = 2
+DEF_BPM = 100
+DEF_SUBDIVISION = '16'
+DEF_NUM_OCTAVES = 2
+DEF_SCALE = 'dorian'
+DEF_TONAL_CENTER = 'A'
 
 
 class Synth():
 
     def __init__(self):
+        print("\n\n\t##### Initializing Synthesizer #####\n")
         # Create a server to handle all communications with
         # Portaudio and Portaudio MIDI
         self.server = Server()
@@ -17,8 +25,8 @@ class Synth():
         # Select the device with the 'default' name
         if platform == "linux":
             pa_list_devices()
-            print("Select device with 'default' name")
-            device = int(input("Select audio device: "))
+            print("\tSelect device with 'default' name")
+            device = int(input("\n\tSelect audio device: "))
             self.server.setOutputDevice(device)
 
         # the boot() function boots the server
@@ -26,11 +34,10 @@ class Synth():
         #     - opening Audio and MIDI interfaces
         #     - setup of Sample Rate and Number of Channels
         self.server.boot()
-        print("\n\tPyo server initialized")
+        print("\tAudio server initialized")
 
         # Start audio processing in the server
         self.server.start()
-        print("\tAudio running")
 
         # Create an envelope generator
         self.amp_env = Adsr(attack=0.01,
@@ -43,61 +50,128 @@ class Synth():
         # Initialize oscillator
         self.osc = Sine(mul=self.amp_env).out()
 
-        self.set_base()
-
-        self.select_scale()
-
-    def set_freq(self, scale_step):
-        f = float(self.base * 2 ** (scale_step / 12))
-        print(f"Oscillator Frequency: {f:.2f}")
-        self.osc.freq = f
+        self.settings()
 
     def play(self):
         # Play the envelope generator
         self.amp_env.play()
 
-    def stop(self):
-        print("Shutting down the audio server.\n")
-        # Stop the server
-        self.server.stop()
-
-    def set_base(self):
-        # The base is the lowest possible note of the synth
-        option = input("""
-        Select lowest frequency option:
-            1 = 110Hz
-            2 = 220Hz
-            3 = 440Hz
-        (Note: Any other input will default to 220Hz)
-        """)
-
-        if option in bases.keys():
-            freq = bases[option]
-        else:
-            freq = bases['2']
-
-        self.base = freq
+    #######################
+    ### SCALE FUNCTIONS ###
+    #######################
 
     def select_scale(self):
-        print_scales()
+        # Display available scales to the user
+        print("\n\tIndex of scales")
+        [print(f"\t\t{k}") for k in scales.keys()]
 
         while True:
-            scale = input("Select your scale (type the name): ")
+            scale = input("\n\tSelect your scale (type the name): ").lower()
             if scale in scales.keys():
                 break
             else:
-                print("Please input an available scale.")
+                print("Please input the name of an available scale.")
 
         while True:
-            n_octaves = int(input("Select number of octaves: "))
+            n_octaves = int(input("\tSelect number of octaves: "))
             if n_octaves >= 1 or n_octaves <= 8:
                 break
             else:
                 print("Please choose a number between 1 and 8 inclusive.")
 
+        self.set_scale(scale, n_octaves)
+
+    # The base is the lowest possible frequency of the synth
+    def set_base(self, tonal_cntr=DEF_TONAL_CENTER, mult=DEF_BASE_MULTIPLIER):
+        self.base = tonal_center_options[tonal_cntr] * mult
+        print(f"\tBase frequency: {self.base}Hz")
+
+    def set_freq(self, scale_step):
+        f = float(self.base * 2 ** (scale_step / 12))
+        print(f"\tOscillator Frequency: {f:.2f}")
+        self.osc.freq = f
+
+    def set_scale(self, scale=DEF_SCALE, n_octaves=DEF_NUM_OCTAVES):
         # Extend number of steps in the scale to match the number of octaves
         self.scale = np.hstack(
             [np.hstack(scales[scale]) + i * 12 for i in range(n_octaves)]
         )
+        print(f"\n\tScale: {scale.capitalize()}")
+        print(f"\tScale structure: {self.scale}")
 
-        print(self.scale)
+    ################
+    ### SETTINGS ###
+    ################
+
+    def set_bpm(self, bpm=DEF_BPM):
+        self.bpm = 60 / bpm
+        print(f"\n\tBPM: Quarter Note {bpm}")
+
+    def set_pulse_rate(self, sub_division=DEF_SUBDIVISION):
+        self.pulse_rate = self.bpm / bpm_sub_divisions[sub_division]
+        print(f"\n\tSub-Division = {sub_division_options[sub_division]}")
+        print(f"\tPulse rate = {self.pulse_rate:.2f} seconds")
+
+    def settings(self):
+        # Check if the user would like to use default settings.
+        x = input("""
+        Would you like to use the synthesizer's defaults?
+        (Any other input will implement defaults).
+        y/n: """)
+
+        # Set default settings
+        if x.lower() != "n":
+            self.set_base()
+            self.set_scale()
+            self.set_bpm()
+            self.set_pulse_rate()
+
+        # Prompt for custom settings
+        else:
+            # Set the synthesizer frequency base (i.e., tonal center)
+            print("\n\tSelect tonal center (use letters)")
+            [print(f"\t\t{k}:\t{v}") for k, v in tonal_center_options.items()]
+            print(f"\tUnavailable inputs default to {DEF_TONAL_CENTER}.")
+            tonal_center = input("\n\tTonal Center: ").capitalize()
+            if tonal_center not in tonal_center_options:
+                tonal_center = DEF_TONAL_CENTER
+
+            # Set the base multiplier
+            print("\n\tSelect base multiplier:")
+            [print(f"\t\t{mult}") for mult in base_mult_options]
+            print(f"\tUnavailable inputs default to {DEF_BASE_MULTIPLIER}")
+            base_mult = int(input("\n\tBase Multiplier: "))
+            if base_mult not in base_mult_options:
+                base_mult = DEF_BASE_MULTIPLIER
+
+            self.set_base(tonal_center, base_mult)
+
+            # Set scale
+            self.select_scale()
+
+            # Set clock
+            bpm = int(input("\n\tChoose quarter note BPM: "))
+            if isinstance(bpm, (int, float)) and bpm != 0:
+                self.set_bpm(abs(bpm))
+            else:
+                self.set_bpm()
+
+            # Set subdivision for pulse rate
+            print("\tAvailable sub-division options:")
+            [print(f"\t\t{k}: {v}") for k, v in sub_division_options.items()]
+            print(f"\tUnavailable inputs default to {sub_division_options[DEF_SUBDIVISION]}.")
+            sub_div = input("\n\tSelect sub-division option (use index): ")
+
+            if sub_div in bpm_sub_divisions.keys():
+                self.set_pulse_rate(sub_div)
+            else:
+                self.set_pulse_rate()
+
+    ########################
+    ### SERVER FUNCTIONS ###
+    ########################
+
+    def stop_server(self):
+        print("\tShutting down the audio server.\n")
+        # Stop the server
+        self.server.stop()

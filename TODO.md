@@ -8,16 +8,10 @@
 
 * Add modes of operation based on controllers detected upon launch.
 
-* Calculate bases using multipliers
-
-* Add base for each of the 12-tone system tonal centers
-
 
 ## ST Implementation
 
 ### BLE
-
-* Create BLE abstraction
 
 * Parse incoming BLE data
 

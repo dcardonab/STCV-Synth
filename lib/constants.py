@@ -26,7 +26,7 @@ scales = {
 }
 
 # BPM sub-divisions
-sub_divisions = {
+bpm_sub_divisions = {
     '1': 0.25,
     '2': 0.5,
     '3': 0.75,
@@ -37,9 +37,42 @@ sub_divisions = {
     '16': 4
 }
 
-# Frequency bases in Hz
-bases = {
-    '1': 110,
-    '2': 220,
-    '3': 440
+sub_division_options = {
+    '1': "Whole Notes",
+    '2': "Half Notes",
+    '3': "Half Note Triplet",
+    '4': "Quarter Notes",
+    '6': "Quarter Note Triplet",
+    '8': "Eigth Notes",
+    '12': "Eigth Note Triplet",
+    '16': "Sixteenth Notes"
+}
+
+# Music Key and Multiplier Options
+tonal_center_options = {
+    'A': 110,
+    'A#': 116.54,
+    'Bb': 116.54,
+    'B': 123.47,
+    'C': 130.81,
+    'C#': 138.59,
+    'Db': 138.59,
+    'D': 146.83,
+    'D#': 155.56,
+    'Eb': 155.56,
+    'E': 164.81,
+    'F': 174.61,
+    'F#': 185,
+    'Gb': 185,
+    'G': 196,
+    'G#': 207.65,
+    'Ab': 207.65
+}
+
+base_mult_options = [1, 2, 3, 4]
+
+# SensorTile GATT Handles
+ST_handles = {
+    'environmental': 13,
+    'motion': 16
 }
