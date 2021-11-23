@@ -9,7 +9,8 @@ from st_ble import *
 from synth import *
 
 
-ST_HANDLE = ST_handles['motion']
+ST_ENVIRONMENT = ST_handles['environment']
+ST_MOTION = ST_handles['motion']
 
 async def main():
     ####################
@@ -34,12 +35,12 @@ async def main():
     try:
         if ST_address:
             # Enable notifications of motion data.
-            await sensor_tile.start_notification(ST_HANDLE)
+            await sensor_tile.start_notification(ST_MOTION)
         while True:
             if ST_address:
                 # Get data from Queue
                 _, ST_data = await sensor_tile.data.get()
-                print(ST_data)
+                # print(f"\t{ST_data}")
 
             scale_step = random.choice(synth.scale)
             synth.set_freq(scale_step)
@@ -52,7 +53,7 @@ async def main():
     finally:
         synth.stop_server()
         if ST_address:
-            await sensor_tile.stop_notification(ST_HANDLE)
+            await sensor_tile.stop_notification(ST_MOTION)
             await sensor_tile.BLE_disconnect()
 
 

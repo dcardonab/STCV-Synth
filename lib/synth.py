@@ -175,3 +175,5 @@ class Synth():
         print("\tShutting down the audio server.\n")
         # Stop the server
         self.server.stop()
+
+

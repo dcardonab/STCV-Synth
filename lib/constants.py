@@ -73,6 +73,6 @@ base_mult_options = [1, 2, 3, 4]
 
 # SensorTile GATT Handles
 ST_handles = {
-    'environmental': 13,
+    'environment': 13,
     'motion': 16
 }

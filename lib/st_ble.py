@@ -1,7 +1,10 @@
 import asyncio
 import logging
+import struct
 
 from bleak import BleakClient, BleakError, BleakScanner
+
+from util import *
 
 
 class SensorTile():
@@ -10,7 +13,7 @@ class SensorTile():
         self.client = BleakClient(self.address)
         # A LiFo Queue will ensure that the most recent registered
         # ST data is retrieved
-        self.data = asyncio.LifoQueue()
+        self.data = asyncio.LifoQueue(maxsize=1)
 
     async def BLE_connect(self):
         # Connect to SensorTile
@@ -38,8 +41,57 @@ class SensorTile():
 
     # Add data to Queue
     async def notification_handler(self, handle, data):
+        # Store incoming data in a dictionary
+        data_d = {}
+
+        # Acceleration
+        data_d['acc_x'] = struct.unpack_from("<h", data[2:4])[0]
+        data_d['acc_y'] = struct.unpack_from("<h", data[4:6])[0]
+        data_d['acc_z'] = struct.unpack_from("<h", data[6:8])[0] 
+
+        # Gyroscope
+        # Data is multiplied by 100 to compensate for the division
+        # applied in the firmware. This division is so that the
+        # gyroscope data fits in two bytes of data.
+        data_d['gyr_x'] = struct.unpack_from("<h", data[8:10])[0] * 100
+        data_d['gyr_y'] = struct.unpack_from("<h", data[10:12])[0] * 100
+        data_d['gyr_z'] = struct.unpack_from("<h", data[12:14])[0] * 100
+
+        # Magnetometer
+        # Incoming magnetometer data has the magnetometer offset
+        # subtracted from it prior to being sent.
+        data_d['mag_x'] = struct.unpack_from("<h", data[14:16])[0]
+        data_d['mag_y'] = struct.unpack_from("<h", data[16:18])[0]
+        data_d['mag_z'] = struct.unpack_from("<h", data[18:20])[0]
+
+        # Calculate Magnitude of each parameter
+        data_d['mag_acc'] = magnitude(
+            [data_d['acc_x'], data_d['acc_y'], data_d['acc_z']]
+        )
+        data_d['mag_gyr'] = magnitude(
+            [data_d['gyr_x'], data_d['gyr_y'], data_d['gyr_z']]
+        )   
+        data_d['mag_mag'] = magnitude(
+            [data_d['mag_x'], data_d['mag_y'], data_d['mag_z']]
+        )
+
+        # Calculate Roll, Pitch, and Yaw
+        data_d['roll'] = roll()
+        data_d['pitch'] = pitch()
+        data_d['yaw'] = yaw()
+        
         # Add data to Queue
-        await self.data.put((handle, data))
+        await self.data.put((handle, data_d))
+
+        ############
+        # Uncomment to print incomming data
+        # result = struct.unpack_from("<hhhhhhhhhh", data)
+        # print(data)
+        # print(result)
+        # print(f"\tACC X: {acc_x}\tACC Y: {acc_y}\tACC Z: {acc_z}")
+        # print(f"\tGYR X: {gyr_x}\tGYR Y: {gyr_y}\tGYR Z: {gyr_z}")
+        # print(f"\tMAG X: {mag_x}\tMAG Y: {mag_y}\tMAG Z: {mag_z}")
+
 
 
 async def find_ST():

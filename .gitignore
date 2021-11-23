@@ -4,6 +4,9 @@
 # Python
 __pycache__/
 
+# SensorTile Firmware working directory
+*/STM32CubeFunctionPack_ALLMEMS1_V3.1.0
+
 # Testing
 tests/
 
