@@ -15,6 +15,22 @@ DEF_TONAL_CENTER = 'A'
 
 
 class Synth():
+    """
+        List of all properties include:
+
+            Synth properties:
+                self.server
+                self.ampt_env
+                self.osc
+
+            Settings properties:
+                self.current_base   # As it relates to base_mult_options
+                self.base_hz
+                self.oct_range
+                self.scale
+                self.bpm
+                self.pulse_range
+    """
 
     def __init__(self):
         print("\n\n\t##### Initializing Synthesizer #####\n")
@@ -90,11 +106,11 @@ class Synth():
         # Mult value is stored in current_base for
         # accessing it when defining scale
         self.current_base = base_mult_options[mult]
-        self.base = tonal_center_options[tonal_cntr] * self.current_base[0]
-        print(f"\n\tBase frequency: {self.base}Hz")
+        self.base_hz = tonal_center_options[tonal_cntr] * self.current_base[0]
+        print(f"\n\tBase frequency: {self.base_hz}Hz")
 
     def set_freq(self, scale_step):
-        f = float(self.base * 2 ** (scale_step / 12))
+        f = float(self.base_hz * 2 ** (scale_step / 12))
         print(f"\tOscillator Frequency: {f:.2f}")
         self.osc.freq = f
 
