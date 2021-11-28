@@ -65,10 +65,10 @@ class SensorTile():
         data_d['mag_z'] = struct.unpack_from("<h", data[18:20])[0]
 
         # Calculate Magnitude of each parameter
-        data_d['mag_acc'] = magnitude(
+        data_d['acc_mag'] = magnitude(
             [data_d['acc_x'], data_d['acc_y'], data_d['acc_z']]
         )
-        data_d['mag_gyr'] = magnitude(
+        data_d['gyr_mag'] = magnitude(
             [data_d['gyr_x'], data_d['gyr_y'], data_d['gyr_z']]
         )   
         data_d['mag_mag'] = magnitude(
@@ -76,22 +76,12 @@ class SensorTile():
         )
 
         # Calculate Roll, Pitch, and Yaw
-        data_d['roll'] = roll()
-        data_d['pitch'] = pitch()
-        data_d['yaw'] = yaw()
+        # data_d['roll'] = roll()
+        # data_d['pitch'] = pitch()
+        # data_d['yaw'] = yaw()
         
         # Add data to Queue
         await self.data.put((handle, data_d))
-
-        ############
-        # Uncomment to print incomming data
-        # result = struct.unpack_from("<hhhhhhhhhh", data)
-        # print(data)
-        # print(result)
-        # print(f"\tACC X: {acc_x}\tACC Y: {acc_y}\tACC Z: {acc_z}")
-        # print(f"\tGYR X: {gyr_x}\tGYR Y: {gyr_y}\tGYR Z: {gyr_z}")
-        # print(f"\tMAG X: {mag_x}\tMAG Y: {mag_y}\tMAG Z: {mag_z}")
-
 
 
 async def find_ST():

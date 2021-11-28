@@ -1,7 +1,6 @@
 import asyncio
 import random
 import sys
-import time
 
 sys.path.append('lib')
 from constants import ST_handles
@@ -11,6 +10,7 @@ from synth import *
 
 ST_ENVIRONMENT = ST_handles['environment']
 ST_MOTION = ST_handles['motion']
+ST_QUATERNIONS = ST_handles['quaternions']
 
 async def main():
     ####################
@@ -36,11 +36,11 @@ async def main():
         if ST_address:
             # Enable notifications of motion data.
             await sensor_tile.start_notification(ST_MOTION)
+            
         while True:
             if ST_address:
                 # Get data from Queue
                 _, ST_data = await sensor_tile.data.get()
-                # print(f"\t{ST_data}")
 
             scale_step = random.choice(synth.scale)
             synth.set_freq(scale_step)

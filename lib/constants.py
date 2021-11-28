@@ -69,10 +69,21 @@ tonal_center_options = {
     'Ab': 207.65
 }
 
-base_mult_options = [1, 2, 3, 4]
+# Each key holds a tuple containing the base multiplier
+# and the maximum octave range for that multiplier.
+base_mult_options = {
+    "1": (0.25, 7),
+    "2": (0.5, 6),
+    "3": (1, 5),
+    "4": (2, 4),
+    "5": (4, 3),
+    "6": (8, 2),
+    "7": (16, 1)
+}
 
 # SensorTile GATT Handles
 ST_handles = {
     'environment': 13,
-    'motion': 16
+    'motion': 16,
+    'quaternions': 28
 }

@@ -6,9 +6,12 @@ from math import atan, pi, sqrt, radians
 
 # This definition is temporal and it will be abstracted to the ST firmware.
 def magnitude(values_list):
+    [print(v) for v in values_list]
     mag = 0
     for v in values_list:
         mag += pow(v, 2)
+
+    print(sqrt(mag))
     return sqrt(mag)
 
 # Pitch is the rotations about the y axis (between -90 and 90 deg)

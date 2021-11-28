@@ -6,7 +6,7 @@ from sys import platform
 from constants import *
 
 
-DEF_BASE_MULTIPLIER = 2
+DEF_BASE_MULTIPLIER = '4'
 DEF_BPM = 100
 DEF_SUBDIVISION = '16'
 DEF_NUM_OCTAVES = 2
@@ -77,14 +77,21 @@ class Synth():
             if n_octaves >= 1 or n_octaves <= 8:
                 break
             else:
-                print("Please choose a number between 1 and 8 inclusive.")
+                print("""
+                Please choose a number between 1 and 8 inclusive.
+                If selection exceeds maximum 8ve range for the selected base,
+                it will be truncated to that maximum value.
+                """)
 
         self.set_scale(scale, n_octaves)
 
     # The base is the lowest possible frequency of the synth
     def set_base(self, tonal_cntr=DEF_TONAL_CENTER, mult=DEF_BASE_MULTIPLIER):
-        self.base = tonal_center_options[tonal_cntr] * mult
-        print(f"\tBase frequency: {self.base}Hz")
+        # Mult value is stored in current_base for
+        # accessing it when defining scale
+        self.current_base = base_mult_options[mult]
+        self.base = tonal_center_options[tonal_cntr] * self.current_base[0]
+        print(f"\n\tBase frequency: {self.base}Hz")
 
     def set_freq(self, scale_step):
         f = float(self.base * 2 ** (scale_step / 12))
@@ -92,9 +99,16 @@ class Synth():
         self.osc.freq = f
 
     def set_scale(self, scale=DEF_SCALE, n_octaves=DEF_NUM_OCTAVES):
+        # Make sure the octave length does not exceed the 8ve range for the
+        # selected base
+        if n_octaves <= self.current_base[1]:
+            self.oct_range = n_octaves
+        else:
+            self.oct_range = self.current_base[1]
+
         # Extend number of steps in the scale to match the number of octaves
         self.scale = np.hstack(
-            [np.hstack(scales[scale]) + i * 12 for i in range(n_octaves)]
+            [np.hstack(scales[scale]) + i * 12 for i in range(self.oct_range)]
         )
         print(f"\n\tScale: {scale.capitalize()}")
         print(f"\tScale structure: {self.scale}")
@@ -137,10 +151,13 @@ class Synth():
                 tonal_center = DEF_TONAL_CENTER
 
             # Set the base multiplier
-            print("\n\tSelect base multiplier:")
-            [print(f"\t\t{mult}") for mult in base_mult_options]
-            print(f"\tUnavailable inputs default to {DEF_BASE_MULTIPLIER}")
-            base_mult = int(input("\n\tBase Multiplier: "))
+            print("\n\tSelect base multiplier (select numeric option):")
+            [
+                print(f"\t\t{k}: Multiplier:\t{v[0]}\tMax 8ve range:\t{v[1]}") 
+                for k, v in base_mult_options.items()
+            ]
+            print(f"\tUnavailable inputs default to option {DEF_BASE_MULTIPLIER}")
+            base_mult = input("\n\tBase Multiplier: ")
             if base_mult not in base_mult_options:
                 base_mult = DEF_BASE_MULTIPLIER
 
