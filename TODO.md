@@ -2,7 +2,7 @@
 
 ## Synth
 
-* Add event handler.
+* Add event handler --> Set 'esc' key for quitting the program.
 
 * Add feature to export .wav files after every execution.
 
@@ -13,30 +13,32 @@
 
 ### BLE
 
-* Parse incoming BLE data
-
 * Install and test `bleak` in Jetson Nano
 
-* Verify installation instructions in README
+* Verify installation instructions in README, as well as installation .txt files.
 
 
 ### Synth
 
 * Determine what ST parameters will control what portions of the synth.
 
-* Decide which ST firmware to use.
-
 * Figure out how to include/add the ST firmware, as well as what instructions the user needs in order to flash and install the firmware.
+
+    * Write a shell script to automatically flash the bootloader and the software into the ST using `st-link`?
+
+    * Add instructions to replace the `main.c` file in the `ALLMEMSv3.1` firmware for potential editing of firmware?
+
+        * Add links of where to get said firmware.
 
 
 ## CV Implementation
 
-* Detect the number of fingers in the Field of View.
+* Incorporate CV into `main.py`
 
-* Detect hand gestures (potentially ASL)    
 
-* Add continuous control
-    * Use sign language gestures to access parameters, and use continuous position motion/magnitude data to control the accessed parameter(s)
+## Documentation
+
+* Add user manual, including installation and usage instructions
 
 
 ## Gestures

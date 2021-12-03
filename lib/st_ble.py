@@ -4,6 +4,7 @@ import struct
 
 from bleak import BleakClient, BleakError, BleakScanner
 
+from constants import ST_handles
 from util import *
 
 
@@ -13,7 +14,9 @@ class SensorTile():
         self.client = BleakClient(self.address)
         # A LiFo Queue will ensure that the most recent registered
         # ST data is retrieved
-        self.data = asyncio.LifoQueue(maxsize=1)
+        self.environment_data = asyncio.LifoQueue(maxsize=1)
+        self.motion_data = asyncio.LifoQueue(maxsize=1)
+        self.quaternions_data = asyncio.LifoQueue(maxsize=1)
 
     async def BLE_connect(self):
         # Connect to SensorTile
@@ -40,48 +43,104 @@ class SensorTile():
             print(f"Error: {e}")
 
     # Add data to Queue
-    async def notification_handler(self, handle, data):
+    async def notification_handler(self, char, data):
+        # Route incoming characteristics to the appropriate callback functions
+        if char == ST_handles['environment']:
+            await self.environment_callback(data)
+        elif char == ST_handles['motion']:
+            await self.motion_callback(data)
+        else:
+            await self.quaternions_callback(data)
+
+    async def environment_callback(self, data):
         # Store incoming data in a dictionary
-        data_d = {}
+        environment_data = {}
+
+        environment_data['pressure'] = struct.unpack_from("<h", data[2:4])[0]
+        environment_data['humidity'] = struct.unpack_from("<h", data[4:6])[0]
+        environment_data['temp2'] = struct.unpack_from("<h", data[6:8])[0]
+        environment_data['temp1'] = struct.unpack_from("<h", data[6:8])[0]
+
+        # [print(f"{k}\t{v}") for k, v in environment_data.items()]
+        
+        # Add data to Queue
+        await self.environment_data.put(environment_data)
+
+    async def motion_callback(self, data):
+        # Store incoming data in a dictionary
+        motion_data = {}
 
         # Acceleration
-        data_d['acc_x'] = struct.unpack_from("<h", data[2:4])[0]
-        data_d['acc_y'] = struct.unpack_from("<h", data[4:6])[0]
-        data_d['acc_z'] = struct.unpack_from("<h", data[6:8])[0] 
+        motion_data['acc_x'] = struct.unpack_from("<h", data[2:4])[0]
+        motion_data['acc_y'] = struct.unpack_from("<h", data[4:6])[0]
+        motion_data['acc_z'] = struct.unpack_from("<h", data[6:8])[0] 
 
         # Gyroscope
         # Data is multiplied by 100 to compensate for the division
         # applied in the firmware. This division is so that the
         # gyroscope data fits in two bytes of data.
-        data_d['gyr_x'] = struct.unpack_from("<h", data[8:10])[0] * 100
-        data_d['gyr_y'] = struct.unpack_from("<h", data[10:12])[0] * 100
-        data_d['gyr_z'] = struct.unpack_from("<h", data[12:14])[0] * 100
+        motion_data['gyr_x'] = struct.unpack_from("<h", data[8:10])[0] * 100
+        motion_data['gyr_y'] = struct.unpack_from("<h", data[10:12])[0] * 100
+        motion_data['gyr_z'] = struct.unpack_from("<h", data[12:14])[0] * 100
 
         # Magnetometer
         # Incoming magnetometer data has the magnetometer offset
         # subtracted from it prior to being sent.
-        data_d['mag_x'] = struct.unpack_from("<h", data[14:16])[0]
-        data_d['mag_y'] = struct.unpack_from("<h", data[16:18])[0]
-        data_d['mag_z'] = struct.unpack_from("<h", data[18:20])[0]
+        motion_data['mag_x'] = struct.unpack_from("<h", data[14:16])[0]
+        motion_data['mag_y'] = struct.unpack_from("<h", data[16:18])[0]
+        motion_data['mag_z'] = struct.unpack_from("<h", data[18:20])[0]
 
         # Calculate Magnitude of each parameter
-        data_d['acc_mag'] = magnitude(
-            [data_d['acc_x'], data_d['acc_y'], data_d['acc_z']]
+        motion_data['acc_mag'] = magnitude(
+            [motion_data['acc_x'], motion_data['acc_y'], motion_data['acc_z']]
         )
-        data_d['gyr_mag'] = magnitude(
-            [data_d['gyr_x'], data_d['gyr_y'], data_d['gyr_z']]
+        motion_data['gyr_mag'] = magnitude(
+            [motion_data['gyr_x'], motion_data['gyr_y'], motion_data['gyr_z']]
         )   
-        data_d['mag_mag'] = magnitude(
-            [data_d['mag_x'], data_d['mag_y'], data_d['mag_z']]
+        motion_data['mag_mag'] = magnitude(
+            [motion_data['mag_x'], motion_data['mag_y'], motion_data['mag_z']]
         )
 
-        # Calculate Roll, Pitch, and Yaw
-        # data_d['roll'] = roll()
-        # data_d['pitch'] = pitch()
-        # data_d['yaw'] = yaw()
+        # [print(f"{k}\t{v}") for k, v in motion_data.items()]
         
         # Add data to Queue
-        await self.data.put((handle, data_d))
+        await self.motion_data.put(motion_data)
+
+    async def quaternions_callback(self, data):
+        # Store incoming data in a dictionary
+        quaternions_data = {}
+
+        # First Quaternion
+        i = struct.unpack_from("<h", data[2:4])[0]
+        j = struct.unpack_from("<h", data[4:6])[0]
+        k = struct.unpack_from("<h", data[6:8])[0] 
+
+        # # First Quaternion
+        # quaternions_data['j_x'] = struct.unpack_from("<h", data[2:4])[0]
+        # quaternions_data['j_y'] = struct.unpack_from("<h", data[10:12])[0]
+        # quaternions_data['j_z'] = struct.unpack_from("<h", data[12:14])[0]
+
+        # # Second Quaternion
+        # quaternions_data['j_x'] = struct.unpack_from("<h", data[8:10])[0]
+        # quaternions_data['j_y'] = struct.unpack_from("<h", data[10:12])[0]
+        # quaternions_data['j_z'] = struct.unpack_from("<h", data[12:14])[0]
+
+        # # Third Quaternion
+        # quaternions_data['k_x'] = struct.unpack_from("<h", data[14:16])[0]
+        # quaternions_data['k_y'] = struct.unpack_from("<h", data[16:18])[0]
+        # quaternions_data['k_z'] = struct.unpack_from("<h", data[18:20])[0]
+
+        # [print(f"{k}\t{v}") for k, v in quaternions_data.items()]
+
+        norm = magnitude([i, j, k])
+        i = i / norm
+        j = j / norm
+        k = k / norm
+
+        print(f"Roll: {roll(i, j, k):.2f}\t Pitch: {pitch(i, j, k):.2f}\tYaw: {yaw(i, j, k):.2f}", end='\r', flush=True)
+        
+        # Add data to Queue
+        await self.quaternions_data.put(quaternions_data)
 
 
 async def find_ST():

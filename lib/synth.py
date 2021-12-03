@@ -27,7 +27,7 @@ class Synth():
                 self.current_base   # As it relates to base_mult_options
                 self.base_hz
                 self.oct_range
-                self.scale
+                self.scale          # numpy array containing the scale shape
                 self.bpm
                 self.pulse_range
     """
@@ -90,11 +90,13 @@ class Synth():
 
         while True:
             n_octaves = int(input("\tSelect number of octaves: "))
-            if n_octaves >= 1 or n_octaves <= 8:
+            # The second value of the tuple contained in current_base contains
+            # the maximum octave value available for the selected base.
+            if n_octaves >= 1 or n_octaves <= self.current_base[1]:
                 break
             else:
-                print("""
-                Please choose a number between 1 and 8 inclusive.
+                print(f"""
+                Please choose a number between 1 and {self.current_base[1]} inclusive.
                 If selection exceeds maximum 8ve range for the selected base,
                 it will be truncated to that maximum value.
                 """)
@@ -116,7 +118,7 @@ class Synth():
 
     def set_scale(self, scale=DEF_SCALE, n_octaves=DEF_NUM_OCTAVES):
         # Make sure the octave length does not exceed the 8ve range for the
-        # selected base
+        # selected base. This is done when the octave base changes.
         if n_octaves <= self.current_base[1]:
             self.oct_range = n_octaves
         else:

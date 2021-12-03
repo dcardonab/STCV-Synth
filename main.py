@@ -1,4 +1,5 @@
 import asyncio
+from asyncio.events import Handle
 import random
 import sys
 
@@ -8,14 +9,12 @@ from lib.st_ble import *
 from lib.synth import *
 
 
-ST_ENVIRONMENT = ST_handles['environment']
-ST_MOTION = ST_handles['motion']
-ST_QUATERNIONS = ST_handles['quaternions']
-
 async def main():
-    ####################
-    ### INIT SENSORS ###
-    ####################
+
+    #######################
+    ### INIT SENSORTILE ###
+    #######################
+
     # Find ST address
     ST_address = await find_ST()
 
@@ -26,21 +25,37 @@ async def main():
         # Connect to ST
         await sensor_tile.BLE_connect()
 
+    ###################
+    ### INIT CAMERA ###
+    ###################
+
+    # TODO
+
     ########################
     ### INIT SYNTHESIZER ###
     ########################
+
     synth = Synth()
 
     print("\n\n\t##### Starting performance #####\n")
     try:
         if ST_address:
+            # Enable notifications of environmental data.
+            await sensor_tile.start_notification(ST_handles['environment'])
             # Enable notifications of motion data.
-            await sensor_tile.start_notification(ST_MOTION)
-            
+            await sensor_tile.start_notification(ST_handles['motion'])
+            # Enable notifications of quaternion data.
+            await sensor_tile.start_notification(ST_handles['quaternions'])
+
+        # TODO if camera:
+
+        input("Press enter")
         while True:
             if ST_address:
-                # Get data from Queue
-                _, ST_data = await sensor_tile.data.get()
+                # Get data from Queues
+                environment_data = await sensor_tile.environment_data.get()
+                motion_data = await sensor_tile.motion_data.get()
+                quaternions_data = await sensor_tile.quaternions_data.get()
 
             scale_step = random.choice(synth.scale)
             synth.set_freq(scale_step)
@@ -51,9 +66,14 @@ async def main():
         print("\n\n\t##### STCV-Synth was stopped #####\n")
 
     finally:
+        # Stop Synth
         synth.stop_server()
+
+        # Stop ST
         if ST_address:
-            await sensor_tile.stop_notification(ST_MOTION)
+            await sensor_tile.stop_notification(ST_handles['environment'])
+            await sensor_tile.stop_notification(ST_handles['motion'])
+            await sensor_tile.stop_notification(ST_handles['quaternions'])
             await sensor_tile.BLE_disconnect()
 
 
