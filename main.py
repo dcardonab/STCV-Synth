@@ -3,9 +3,9 @@ import random
 import sys
 
 sys.path.append('lib')
-from constants import ST_handles
-from st_ble import *
-from synth import *
+from lib.constants import ST_handles
+from lib.st_ble import *
+from lib.synth import *
 
 
 ST_ENVIRONMENT = ST_handles['environment']
