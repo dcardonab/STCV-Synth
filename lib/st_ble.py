@@ -56,19 +56,25 @@ class SensorTile():
         # Store incoming data in a dictionary
         environment_data = {}
 
-        environment_data['pressure'] = struct.unpack_from("<h", data[2:4])[0]
-        environment_data['humidity'] = struct.unpack_from("<h", data[4:6])[0]
-        environment_data['temp2'] = struct.unpack_from("<h", data[6:8])[0]
-        environment_data['temp1'] = struct.unpack_from("<h", data[6:8])[0]
+        time_stamp = struct.unpack_from("<h", data[0:2])[0]
 
-        # [print(f"{k}\t{v}") for k, v in environment_data.items()]
+        # Pressure is represented by 4 bytes
+        environment_data['pressure'] = struct.unpack_from("<h", data[2:6])[0]
+
+        environment_data['humidity'] = struct.unpack_from("<h", data[6:8])[0]
+
+        # The order of the temp sensors is swapped in the ST GATT transfer.
+        environment_data['temp2'] = struct.unpack_from("<h", data[8:10])[0]
+        environment_data['temp1'] = struct.unpack_from("<h", data[10:12])[0]
         
         # Add data to Queue
-        await self.environment_data.put(environment_data)
+        await self.environment_data.put((time_stamp, environment_data))
 
     async def motion_callback(self, data):
         # Store incoming data in a dictionary
         motion_data = {}
+
+        time_stamp = struct.unpack_from("<h", data[0:2])[0]
 
         # Acceleration
         motion_data['acc_x'] = struct.unpack_from("<h", data[2:4])[0]
@@ -91,56 +97,78 @@ class SensorTile():
         motion_data['mag_z'] = struct.unpack_from("<h", data[18:20])[0]
 
         # Calculate Magnitude of each parameter
-        motion_data['acc_mag'] = magnitude(
-            [motion_data['acc_x'], motion_data['acc_y'], motion_data['acc_z']]
-        )
-        motion_data['gyr_mag'] = magnitude(
-            [motion_data['gyr_x'], motion_data['gyr_y'], motion_data['gyr_z']]
-        )   
-        motion_data['mag_mag'] = magnitude(
-            [motion_data['mag_x'], motion_data['mag_y'], motion_data['mag_z']]
-        )
+        motion_data['acc_mag'] = magnitude([
+            motion_data['acc_x'], motion_data['acc_y'], motion_data['acc_z']
+        ])
+        motion_data['gyr_mag'] = magnitude([
+            motion_data['gyr_x'], motion_data['gyr_y'], motion_data['gyr_z']
+        ])   
+        motion_data['mag_mag'] = magnitude([
+            motion_data['mag_x'], motion_data['mag_y'], motion_data['mag_z']
+        ])
 
         # [print(f"{k}\t{v}") for k, v in motion_data.items()]
         
         # Add data to Queue
-        await self.motion_data.put(motion_data)
+        await self.motion_data.put((time_stamp, motion_data))
 
     async def quaternions_callback(self, data):
-        # Store incoming data in a dictionary
-        quaternions_data = {}
+        """
+            Retrieve Quaternion data.
+            A group of three quaternions will be sent by the ST every 30ms.
+            Each received quaternion is a vector quaternion with values that
+            are not constrained to unit length. However, when computing Euler
+            angles, these 3 components are normalized (see util.py).
+            The stored quaternion values are the raw non-normalized values.
+        """
 
-        # First Quaternion
-        i = struct.unpack_from("<h", data[2:4])[0]
-        j = struct.unpack_from("<h", data[4:6])[0]
-        k = struct.unpack_from("<h", data[6:8])[0] 
+        # Store incoming data in independent dictionaries
+        # Initialize multiple dictionaries using a range for loop.
+        q1, q2, q3 = ({} for _ in range(3))
 
-        # # First Quaternion
-        # quaternions_data['j_x'] = struct.unpack_from("<h", data[2:4])[0]
-        # quaternions_data['j_y'] = struct.unpack_from("<h", data[10:12])[0]
-        # quaternions_data['j_z'] = struct.unpack_from("<h", data[12:14])[0]
+        # Retrieve time stamp
+        time_stamp = struct.unpack_from("<h", data[0:2])[0]
 
-        # # Second Quaternion
-        # quaternions_data['j_x'] = struct.unpack_from("<h", data[8:10])[0]
-        # quaternions_data['j_y'] = struct.unpack_from("<h", data[10:12])[0]
-        # quaternions_data['j_z'] = struct.unpack_from("<h", data[12:14])[0]
+        # Retrieve First Quaternion
+        q1['i'] = struct.unpack_from("<h", data[2:4])[0]
+        q1['j'] = struct.unpack_from("<h", data[4:6])[0]
+        q1['k'] = struct.unpack_from("<h", data[6:8])[0] 
 
-        # # Third Quaternion
-        # quaternions_data['k_x'] = struct.unpack_from("<h", data[14:16])[0]
-        # quaternions_data['k_y'] = struct.unpack_from("<h", data[16:18])[0]
-        # quaternions_data['k_z'] = struct.unpack_from("<h", data[18:20])[0]
+        # Retrieve Second Quaternion
+        q2['i'] = struct.unpack_from("<h", data[8:10])[0]
+        q2['j'] = struct.unpack_from("<h", data[10:12])[0]
+        q2['k'] = struct.unpack_from("<h", data[12:14])[0]
 
-        # [print(f"{k}\t{v}") for k, v in quaternions_data.items()]
+        # Retrieve Third Quaternion
+        q3['i'] = struct.unpack_from("<h", data[14:16])[0]
+        q3['j'] = struct.unpack_from("<h", data[16:18])[0]
+        q3['k'] = struct.unpack_from("<h", data[18:20])[0]
 
-        norm = magnitude([i, j, k])
-        i = i / norm
-        j = j / norm
-        k = k / norm
+        # Calculate Euler angles for first quaternion
+        q1['roll'], q1['pitch'], q1['yaw'] = vecQ_to_euler(
+            q1['i'], q1['j'], q1['k']
+        )
 
-        print(f"Roll: {roll(i, j, k):.2f}\t Pitch: {pitch(i, j, k):.2f}\tYaw: {yaw(i, j, k):.2f}", end='\r', flush=True)
+        # Calculate Euler angles for second quaternion
+        q2['roll'], q2['pitch'], q2['yaw'] = vecQ_to_euler(
+            q2['i'], q2['j'], q2['k']
+        )
+
+        # Calculate Euler angles for third quaternion
+        q3['roll'], q3['pitch'], q3['yaw'] = vecQ_to_euler(
+            q3['i'], q3['j'], q3['k']
+        )
+
+        # print(f"Roll: {q3['roll']:.2f}\
+        #         \tPitch: {q3['pitch']:.2f}\
+        #         \tYaw: {q3['yaw']:.2f}", end='\r', flush=True)
+
+        # 'quat_data' is a list containing the dictionaries of each
+        # retrieved quaternion.
+        quat_data = [q1, q2, q3]
         
         # Add data to Queue
-        await self.quaternions_data.put(quaternions_data)
+        await self.quaternions_data.put((time_stamp, quat_data))
 
 
 async def find_ST():

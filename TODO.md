@@ -1,3 +1,8 @@
+# Questions and Considerations
+
+* Should we store normalized or non-normalized quaternion values?
+
+
 # TODO
 
 ## Synth

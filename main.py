@@ -1,5 +1,4 @@
 import asyncio
-from asyncio.events import Handle
 import random
 import sys
 
@@ -41,7 +40,7 @@ async def main():
     try:
         if ST_address:
             # Enable notifications of environmental data.
-            await sensor_tile.start_notification(ST_handles['environment'])
+            # await sensor_tile.start_notification(ST_handles['environment'])
             # Enable notifications of motion data.
             await sensor_tile.start_notification(ST_handles['motion'])
             # Enable notifications of quaternion data.
@@ -49,15 +48,41 @@ async def main():
 
         # TODO if camera:
 
-        input("Press enter")
         while True:
-            if ST_address:
-                # Get data from Queues
-                environment_data = await sensor_tile.environment_data.get()
-                motion_data = await sensor_tile.motion_data.get()
-                quaternions_data = await sensor_tile.quaternions_data.get()
 
-            scale_step = random.choice(synth.scale)
+            if ST_address:
+                """
+                    Get data from Queues using asyncio.gather() method, which
+                    concurrently runs awaitable tasks.
+
+                    Every retrieved value is a tuple with the time stamp of
+                    the data collected as its first value, and the second
+                    value matching the following info:
+
+                    'environment' second tuple value is a dictionary.
+                    Keys: 'pressure', 'humidity', 'temp1', 'temp2'
+
+                    'motion' second tuple value is a dictionary.
+                    Keys: 'acc_x', 'acc_y', 'acc_z',
+                          'gyr_x', 'gyr_y', 'gyr_z',
+                          'mag_x', 'mag_y', 'mag_z',
+                          'acc_mag', 'gyr_mag', 'mag_mag'
+
+                    'quaternions_data' second tuple value is a list
+                    containing three dictionaries.
+                    Each dict has keys: 'i', 'j', 'k', 'roll', 'pitch', 'yaw'
+
+                    e.g., Syntax to get 'roll' value of the first quaternion:
+                    quaternions[1][0]['roll']
+                """
+                # environment, motion, quaternions = await asyncio.gather(
+                motion, quaternions = await asyncio.gather(
+                    # sensor_tile.environment_data.get(),
+                    sensor_tile.motion_data.get(),
+                    sensor_tile.quaternions_data.get()
+                )
+
+            scale_step = random.choice(synth.scale[1])
             synth.set_freq(scale_step)
             synth.play()
             await asyncio.sleep(synth.pulse_rate)

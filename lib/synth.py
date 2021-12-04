@@ -27,7 +27,7 @@ class Synth():
                 self.current_base   # As it relates to base_mult_options
                 self.base_hz
                 self.oct_range
-                self.scale          # numpy array containing the scale shape
+                self.scale          # tuple: (scale name, np.array structure)
                 self.bpm
                 self.pulse_range
     """
@@ -124,12 +124,14 @@ class Synth():
         else:
             self.oct_range = self.current_base[1]
 
-        # Extend number of steps in the scale to match the number of octaves
-        self.scale = np.hstack(
+        # Tuple with the name of the currently selected scale, and the
+        # structure of the scale as a np.array matching the scale structure,
+        # with extended number of steps to match the number of octaves.
+        self.scale = (scale, np.hstack(
             [np.hstack(scales[scale]) + i * 12 for i in range(self.oct_range)]
-        )
-        print(f"\n\tScale: {scale.capitalize()}")
-        print(f"\tScale structure: {self.scale}")
+        ))
+        print(f"\n\tCurrent Scale: {self.scale[0].capitalize()}")
+        print(f"\tScale structure: {self.scale[1]}")
 
     ################
     ### SETTINGS ###
