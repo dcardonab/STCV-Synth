@@ -1,5 +1,5 @@
 import asyncio
-from asyncio.events import Handle
+import os
 import random
 import sys
 
@@ -35,7 +35,10 @@ async def main():
     ### INIT SYNTHESIZER ###
     ########################
 
+    # The server is initialized at a 48kHz sample rate.
     synth = Synth()
+    # 'sampletype' of 1 sets the bit depth to 24-bit int for audio recordings.
+    synth.server.recordOptions(sampletype=1, quality=1)
 
     print("\n\n\t##### Starting performance #####\n")
     try:
@@ -49,15 +52,50 @@ async def main():
 
         # TODO if camera:
 
-        input("Press enter")
-        while True:
-            if ST_address:
-                # Get data from Queues
-                environment_data = await sensor_tile.environment_data.get()
-                motion_data = await sensor_tile.motion_data.get()
-                quaternions_data = await sensor_tile.quaternions_data.get()
+        # Create output audio file. Ensure that previous files are not
+        # overwritten by using the 'exists()' method with an iterator.
+        # ':02d' is used to express ints with two digits.
+        out_fol = "audio_renders"
+        i = 0
+        while os.path.exists(os.path.join(out_fol, f"STCV_snd_{i:02d}.wav")):
+            i += 1
+        synth.server.recstart(os.path.join(out_fol, f"STCV_snd_{i:02d}.wav"))
 
-            scale_step = random.choice(synth.scale)
+        while True:
+
+            if ST_address:
+                """
+                    Get data from Queues using asyncio.gather() method, which
+                    concurrently runs awaitable tasks.
+
+                    Every retrieved value is a tuple with the time stamp of
+                    the data collected as its first value, and the second
+                    value matching the following info:
+
+                    'environment' second tuple value is a dictionary.
+                    Keys: 'pressure', 'humidity', 'temp1', 'temp2'
+
+                    'motion' second tuple value is a dictionary.
+                    Keys: 'acc_x', 'acc_y', 'acc_z',
+                          'gyr_x', 'gyr_y', 'gyr_z',
+                          'mag_x', 'mag_y', 'mag_z',
+                          'acc_mag', 'gyr_mag', 'mag_mag'
+
+                    'quaternions_data' second tuple value is a list
+                    containing three dictionaries.
+                    Each dict has keys: 'i', 'j', 'k', 'roll', 'pitch', 'yaw'
+
+                    e.g., Syntax to get 'roll' value of the first quaternion:
+                    quaternions[1][0]['roll']
+                """
+                environment, motion, quaternions = await asyncio.gather(
+                # motion, quaternions = await asyncio.gather(
+                    sensor_tile.environment_data.get(),
+                    sensor_tile.motion_data.get(),
+                    sensor_tile.quaternions_data.get()
+                )
+
+            scale_step = random.choice(synth.scale[1])
             synth.set_freq(scale_step)
             synth.play()
             await asyncio.sleep(synth.pulse_rate)
@@ -67,6 +105,7 @@ async def main():
 
     finally:
         # Stop Synth
+        synth.server.recstop()
         synth.stop_server()
 
         # Stop ST
