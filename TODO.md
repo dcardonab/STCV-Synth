@@ -1,15 +1,8 @@
-# Questions and Considerations
-
-* Should we store normalized or non-normalized quaternion values?
-
-
 # TODO
 
 ## Synth
 
 * Add event handler --> Set 'esc' key for quitting the program.
-
-* Add feature to export .wav files after every execution.
 
 * Add modes of operation based on controllers detected upon launch.
 
