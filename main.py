@@ -44,7 +44,7 @@ async def main():
     try:
         if ST_address:
             # Enable notifications of environmental data.
-            # await sensor_tile.start_notification(ST_handles['environment'])
+            await sensor_tile.start_notification(ST_handles['environment'])
             # Enable notifications of motion data.
             await sensor_tile.start_notification(ST_handles['motion'])
             # Enable notifications of quaternion data.
@@ -88,9 +88,9 @@ async def main():
                     e.g., Syntax to get 'roll' value of the first quaternion:
                     quaternions[1][0]['roll']
                 """
-                # environment, motion, quaternions = await asyncio.gather(
-                motion, quaternions = await asyncio.gather(
-                    # sensor_tile.environment_data.get(),
+                environment, motion, quaternions = await asyncio.gather(
+                # motion, quaternions = await asyncio.gather(
+                    sensor_tile.environment_data.get(),
                     sensor_tile.motion_data.get(),
                     sensor_tile.quaternions_data.get()
                 )

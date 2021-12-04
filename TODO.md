@@ -20,13 +20,7 @@
 
 * Determine what ST parameters will control what portions of the synth.
 
-* Figure out how to include/add the ST firmware, as well as what instructions the user needs in order to flash and install the firmware.
-
-    * Write a shell script to automatically flash the bootloader and the software into the ST using `st-link`?
-
-    * Add instructions to replace the `main.c` file in the `ALLMEMSv3.1` firmware for potential editing of firmware?
-
-        * Add links of where to get said firmware.
+* Add polyphonic control. `Voice` class abstraction?
 
 
 ## CV Implementation
@@ -37,6 +31,10 @@
 ## Documentation
 
 * Add user manual, including installation and usage instructions
+
+* Update ST_Firmware/flashing_the_ST.md with info on how to flash the ST binaries based on the OS.
+
+    * Write a shell script to automatically flash the bootloader and the software into the ST using `st-link`?
 
 
 ## Gestures
