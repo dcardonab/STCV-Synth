@@ -1,4 +1,5 @@
 import asyncio
+import os
 import random
 import sys
 
@@ -34,7 +35,10 @@ async def main():
     ### INIT SYNTHESIZER ###
     ########################
 
+    # The server is initialized at a 48kHz sample rate.
     synth = Synth()
+    # 'sampletype' of 1 sets the bit depth to 24-bit int for audio recordings.
+    synth.server.recordOptions(sampletype=1, quality=1)
 
     print("\n\n\t##### Starting performance #####\n")
     try:
@@ -47,6 +51,15 @@ async def main():
             await sensor_tile.start_notification(ST_handles['quaternions'])
 
         # TODO if camera:
+
+        # Create output audio file. Ensure that previous files are not
+        # overwritten by using the 'exists()' method with an iterator.
+        # ':02d' is used to express ints with two digits.
+        out_fol = "audio_renders"
+        i = 0
+        while os.path.exists(os.path.join(out_fol, f"STCV_snd_{i:02d}.wav")):
+            i += 1
+        synth.server.recstart(os.path.join(out_fol, f"STCV_snd_{i:02d}.wav"))
 
         while True:
 
@@ -92,6 +105,7 @@ async def main():
 
     finally:
         # Stop Synth
+        synth.server.recstop()
         synth.stop_server()
 
         # Stop ST

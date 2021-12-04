@@ -36,7 +36,7 @@ class Synth():
         print("\n\n\t##### Initializing Synthesizer #####\n")
         # Create a server to handle all communications with
         # Portaudio and Portaudio MIDI
-        self.server = Server()
+        self.server = Server(sr=48000)
 
         # Select the device with the 'default' name
         if platform == "linux":
