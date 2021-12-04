@@ -35,10 +35,9 @@ def data_frame_append(environment, motion, quaternions):
 
     columns = environment_columns + motion_columns + quaternions_columns
     all_data = environment_data + motion_data + quaternions_data
-    print(columns)
-    print(all_data)
+
     record = dict(zip(columns, all_data))
     record_uuid = uuid.uuid4()
-    print(record)
+
     df = pd.DataFrame(record, index=str(record_uuid))
     return df
