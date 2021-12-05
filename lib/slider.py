@@ -4,6 +4,10 @@ from geometry_utility import create_rectangle_array, point_intersects
 
 
 class Slider:
+    """
+    This class creates a slider control where the data value falls inside
+    the bounding rectangle. 
+    """
     def __init__(
         self, BPM=100, visible=True, textlabel="BPM", x1=1000, y1=250, x2=1225, y2=300
     ):
@@ -21,7 +25,7 @@ class Slider:
     def draw_controls(
         self,
         img,
-    ):
+        ):
         '''
         draw_controls drawing to layout the slider control
         :param img: 
@@ -71,8 +75,6 @@ class Slider:
         
         This method takes the opencv image, but currently adds 
         nothing to it. 
-
-
         """
         # Pickup BPM Control
         point = Point(x1, y1)
