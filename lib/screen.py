@@ -1,5 +1,5 @@
 import cv2
-import asyncio
+
 import os
 import hand_tracking as htm
 from shapely.geometry import Point
@@ -9,6 +9,7 @@ from plus_minus_buttons import PlusMinusButtons
 from menu import Menu
 from slider import Slider
 from constants import scales
+import asyncio
 
 
 class Screen:
