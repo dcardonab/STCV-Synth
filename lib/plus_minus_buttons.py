@@ -17,18 +17,33 @@ class PlusMinusButtons:
         btm_text_color=(4, 201, 126),
         back_color=(255, 255, 255),
     ):
+        # Top
         self.x1 = x
+        # Left
         self.y1 = y
+        # Button Label
         self.label = label
+        #Right (or Length)
         self.x2 = x + 50
+        # height
         self.y2 = y + 50
+        # Text color for label
         self.text_color = text_color
+        # Text color for botton
         self.btm_text_color = btm_text_color
+        # Back color of text button
         self.back_color = back_color
+        # Label offset is sets the space to place the 
+        # label away from the button
         self.label_offset_x = label_offset_x
+        # Sets control visibility.  If visible is
+        # false, the control will not process finger motions
         self.visible = visible
+        # The value below which the minus button will not go
         self.min_value = min_value
+        # The maximum value which a button click will set
         self.max_value = max_value
+        # Sets the default value
         self.current_value = 1
 
     def set_visible(self, isVisible):
@@ -43,9 +58,13 @@ class PlusMinusButtons:
 
     def draw(self, img):
         if self.visible:
+            
+            # Creates the plus button rectangle
             cv2.rectangle(
                 img, (self.x1, self.y1), (self.x2, self.y2), self.back_color, cv2.FILLED
             )
+            # Places the place above the button rectangle
+            # The order of drawing sets the display order
             cv2.putText(
                 img,
                 "+",
@@ -56,6 +75,8 @@ class PlusMinusButtons:
                 2,
                 cv2.LINE_AA,
             )
+
+            # creates the second button
             cv2.rectangle(
                 img,
                 ((self.x1 + 100), self.y1),
@@ -63,6 +84,7 @@ class PlusMinusButtons:
                 self.back_color,
                 cv2.FILLED,
             )
+            # The following places the minus text on one of the buttons. 
             cv2.putText(
                 img,
                 "-",
@@ -73,6 +95,8 @@ class PlusMinusButtons:
                 2,
                 cv2.LINE_AA,
             )
+
+            # The following sets the label text of the control
             cv2.putText(
                 img,
                 self.label,
@@ -83,6 +107,7 @@ class PlusMinusButtons:
                 2,
                 cv2.LINE_AA,
             )
+            # The following sets the current selected value
             cv2.putText(
                 img,
                 str(self.current_value),
@@ -96,6 +121,9 @@ class PlusMinusButtons:
         return img
 
     def plus_btn_click(self, x, y):
+        # processes the events for the plus botton click
+        # A button click is simply looking for a finger 
+        # landmark intersection
         if self.visible:
             if self.max_value > self.current_value:
                 point = Point(x, y)
@@ -106,6 +134,9 @@ class PlusMinusButtons:
                     self.current_value += 1
 
     def minus_btn_click(self, x, y):
+        # processes the events for the minus botton click
+        # A button click is simply looking for a finger 
+        # landmark intersection
         if self.visible:
             if self.min_value < self.current_value:
                 point = Point(x, y)
