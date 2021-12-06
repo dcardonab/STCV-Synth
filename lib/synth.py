@@ -224,7 +224,6 @@ class Synth():
         """
         Ensure that previous files are not overwritten by using the
         'exists()' method with an iterator.
-        ':02d' is used to express ints with two digits.
         """
         out_folder = "renders"
 
@@ -235,6 +234,7 @@ class Synth():
         # Determine if output file has been created
         i = 0
         while True:
+            # ':02d' is used to express ints with two digits.
             out_file = f"{self.cur_tonal_center}_{self.scale[0]}_bpm{int(60/self.bpm)}_{i:02d}"
             if not os.path.exists(os.path.join(out_folder, out_file + ".wav")):
                 break
