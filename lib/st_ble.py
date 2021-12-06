@@ -97,17 +97,15 @@ class SensorTile():
         motion_data['mag_z'] = struct.unpack_from("<h", data[18:20])[0]
 
         # Calculate Magnitude of each parameter
-        motion_data['acc_mag'] = magnitude([
+        motion_data['acc_mag'] = magnitude(
             motion_data['acc_x'], motion_data['acc_y'], motion_data['acc_z']
-        ])
-        motion_data['gyr_mag'] = magnitude([
+        )
+        motion_data['gyr_mag'] = magnitude(
             motion_data['gyr_x'], motion_data['gyr_y'], motion_data['gyr_z']
-        ])   
-        motion_data['mag_mag'] = magnitude([
+        )   
+        motion_data['mag_mag'] = magnitude(
             motion_data['mag_x'], motion_data['mag_y'], motion_data['mag_z']
-        ])
-
-        # [print(f"{k}\t{v}") for k, v in motion_data.items()]
+        )
         
         # Add data to Queue
         await self.motion_data.put((time_stamp, motion_data))
@@ -235,39 +233,3 @@ async def write_descriptor(client, desc, data):
         await client.write_gatt_descriptor(desc, data)
     except Exception as e:
         print(f"Error: {e}")
-
-
-async def get_data(self):
-    """
-        Read all services, characteristics, and descriptors,
-        as well as their properties, and values.
-            REF: bleak/examples/service_explorer.py
-    """
-    logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger(__name__)
-    for service in self.client.services:
-        logger.info(f"[Service] {service}")
-        for char in service.characteristics:
-            if "read" in char.properties:
-                try:
-                    value = bytes(await self.client.read_gatt_char(char.uuid))
-                    logger.info(
-                        f"\t[Characteristic] {char} ({','.join(char.properties)}), Value: {value}"
-                    )
-                except Exception as e:
-                    logger.error(
-                        f"\t[Characteristic] {char} ({','.join(char.properties)}), Value: {e}"
-                    )
-            else:
-                value = None
-                logger.info(
-                    f"\t[Characteristic] {char} ({','.join(char.properties)}), Value: {value}"
-                )
-            for descriptor in char.descriptors:
-                try:
-                    value = bytes(
-                        await self.client.read_gatt_descriptor(descriptor.handle)
-                    )
-                    logger.info(f"\t\t[Descriptor] {descriptor}) | Value: {value}")
-                except Exception as e:
-                    logger.error(f"\t\t[Descriptor] {descriptor}) | Value: {e}")

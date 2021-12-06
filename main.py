@@ -1,5 +1,4 @@
 import asyncio
-import os
 import random
 import sys
 
@@ -40,6 +39,9 @@ async def main():
     # 'sampletype' of 1 sets the bit depth to 24-bit int for audio recordings.
     synth.server.recordOptions(sampletype=1, quality=1)
 
+    # Create output audio file.
+    out_path = synth.get_render_path()
+
     print("\n\n\t##### Starting performance #####\n")
     try:
         if ST_address:
@@ -52,14 +54,10 @@ async def main():
 
         # TODO if camera:
 
-        # Create output audio file. Ensure that previous files are not
-        # overwritten by using the 'exists()' method with an iterator.
-        # ':02d' is used to express ints with two digits.
-        out_fol = "audio_renders"
-        i = 0
-        while os.path.exists(os.path.join(out_fol, f"STCV_snd_{i:02d}.wav")):
-            i += 1
-        synth.server.recstart(os.path.join(out_fol, f"STCV_snd_{i:02d}.wav"))
+        # Start recording of the new file
+        synth.server.recstart(out_path + ".wav")
+
+        # TODO add .csv
 
         while True:
 
@@ -89,7 +87,6 @@ async def main():
                     quaternions[1][0]['roll']
                 """
                 environment, motion, quaternions = await asyncio.gather(
-                # motion, quaternions = await asyncio.gather(
                     sensor_tile.environment_data.get(),
                     sensor_tile.motion_data.get(),
                     sensor_tile.quaternions_data.get()

@@ -1,4 +1,5 @@
 import numpy as np
+import os
 from pyo import *
 from sys import platform
 
@@ -20,11 +21,12 @@ class Synth():
 
             Synth properties:
                 self.server
-                self.ampt_env
+                self.amp_env
                 self.osc
 
             Settings properties:
-                self.current_base   # As it relates to base_mult_options
+                self.cur_base       # As it relates to base_mult_options
+                self.cur_tonal_center
                 self.base_hz
                 self.oct_range
                 self.scale          # tuple: (scale name, np.array structure)
@@ -92,11 +94,11 @@ class Synth():
             n_octaves = int(input("\tSelect number of octaves: "))
             # The second value of the tuple contained in current_base contains
             # the maximum octave value available for the selected base.
-            if n_octaves >= 1 or n_octaves <= self.current_base[1]:
+            if n_octaves >= 1 or n_octaves <= self.cur_base[1]:
                 break
             else:
                 print(f"""
-                Please choose a number between 1 and {self.current_base[1]} inclusive.
+                Please choose a number between 1 and {self.cur_base[1]} inclusive.
                 If selection exceeds maximum 8ve range for the selected base,
                 it will be truncated to that maximum value.
                 """)
@@ -107,8 +109,9 @@ class Synth():
     def set_base(self, tonal_cntr=DEF_TONAL_CENTER, mult=DEF_BASE_MULTIPLIER):
         # Mult value is stored in current_base for
         # accessing it when defining scale
-        self.current_base = base_mult_options[mult]
-        self.base_hz = tonal_center_options[tonal_cntr] * self.current_base[0]
+        self.cur_base = base_mult_options[mult]
+        self.cur_tonal_center = tonal_cntr
+        self.base_hz = tonal_center_options[tonal_cntr] * self.cur_base[0]
         print(f"\n\tBase frequency: {self.base_hz}Hz")
 
     def set_freq(self, scale_step):
@@ -119,10 +122,10 @@ class Synth():
     def set_scale(self, scale=DEF_SCALE, n_octaves=DEF_NUM_OCTAVES):
         # Make sure the octave length does not exceed the 8ve range for the
         # selected base. This is done when the octave base changes.
-        if n_octaves <= self.current_base[1]:
+        if n_octaves <= self.cur_base[1]:
             self.oct_range = n_octaves
         else:
-            self.oct_range = self.current_base[1]
+            self.oct_range = self.cur_base[1]
 
         # Tuple with the name of the currently selected scale, and the
         # structure of the scale as a np.array matching the scale structure,
@@ -213,4 +216,28 @@ class Synth():
         # Stop the server
         self.server.stop()
 
+    ##############
+    ### RENDER ###
+    ##############
 
+    def get_render_path(self):
+        """
+        Ensure that previous files are not overwritten by using the
+        'exists()' method with an iterator.
+        ':02d' is used to express ints with two digits.
+        """
+        out_folder = "renders"
+
+        # Determine if output folder exists and create it if it does not
+        if not os.path.exists(out_folder):
+            os.makedirs(out_folder)
+
+        # Determine if output file has been created
+        i = 0
+        while True:
+            out_file = f"{self.cur_tonal_center}_{self.scale[0]}_bpm{int(60/self.bpm)}_{i:02d}"
+            if not os.path.exists(os.path.join(out_folder, out_file + ".wav")):
+                break
+            i += 1
+
+        return os.path.join(out_folder, out_file)

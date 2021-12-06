@@ -2,14 +2,16 @@ from math import asin, atan2, degrees, sqrt
 
 
 # Magnitude is the square root of the sum of the powers of the list items
-def magnitude(values_list):
-    return sqrt(sum(i ** 2 for i in values_list))
+# *args allows declaring a variable number of arguments.
+def magnitude(*args):
+    return sqrt(sum(arg ** 2 for arg in args))
 
 
-# Normalize 3D vector
-def normalize(i, j, k):
-    norm = magnitude([i, j, k])
-    return i / norm, j / norm, k / norm
+# Normalize a variable size vector
+# Returns a tuple containing each normalized argument
+def normalize(*args):
+    norm = magnitude(*args)
+    return tuple(arg / norm for arg in args)
 
 
 ####################
