@@ -4,11 +4,17 @@ import numpy as np
 import os
 
 class data_frame_logger:
-    def __init__(self, file_path) -> None:
+    def __init__(self, file_path, max_record=10000) -> None:
+        """
+        file_path is the path to the log file
+        max_record is the maximum number of records that can accumulate before
+        they are automatically dumped to a file
+        """
         self.data_frame_logger = None
         self.file_path = file_path
+        self.max_record = max_record
 
-    def add_record(self, df):
+    async def add_record(self, df):
         """
         Add_record uses the ability to combine two dataframes together
         if the there is no dataframe created, the first dataframes forms the 
@@ -18,8 +24,11 @@ class data_frame_logger:
             self.data_frame_logger = df
         else:
             self.data_frame_logger = self.data_frame_logger.append(df)
+        
+        if len(self.data_frame_logger) > self.max_record:
+            await self.write_log()
 
-    def write_log(self):
+    async def write_log(self):
         
         if self.data_frame_logger is None:
             #If there are no records to write, the logger just returns
