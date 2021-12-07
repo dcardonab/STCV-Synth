@@ -15,9 +15,12 @@ async def main():
     """
     INIT SENSORTILE
     """
-
-    # Find ST address
-    ST_address = await find_ST(ST_FIRMWARE_NAME)
+    x = input("\n\tWould you like the SensorTile controller? (y/n) ")
+    if x.lower() == "y":
+        # Find ST address
+        ST_address = await find_ST(ST_FIRMWARE_NAME)
+    else:
+        ST_address = False
 
     # Connect to SensorTile if an address was found.
     if ST_address:
@@ -27,23 +30,24 @@ async def main():
         await sensor_tile.BLE_connect()
 
     """
+    INIT COMPUTER VISION
+    """
+    x = input("\n\tWould you like the computer vision controller? (y/n) ")
+    if x.lower() == "y":
+        screen = Screen()
+    else:
+        screen = False
+
+    """
     INIT SYNTHESIZER
     """
     # The server is initialized at a 48kHz sample rate.
-    synth = Synth()
+    synth = Synth(48000)
     # 'sampletype' of 1 sets the bit depth to 24-bit int for audio recordings.
     synth.server.recordOptions(sampletype=1, quality=1)
 
     # Get audio file path.
     out_path = synth.get_render_path()
-
-    """
-    INIT COMPUTER VISION
-    """
-
-    x = input("\tWould you like the computer vision controller? (y/n) ")
-    if x.lower() == "y":
-        screen = Screen()
 
     print("\n\n\t##### Starting performance #####\n")
     try:

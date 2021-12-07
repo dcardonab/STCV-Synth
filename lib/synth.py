@@ -2,6 +2,7 @@ import numpy as np
 import os
 from pyo import *
 from sys import platform
+from typing import Union
 
 # Local files
 from constants import *
@@ -26,7 +27,7 @@ class Synth():
             self.pulse_range
     """
 
-    def __init__(self) -> None:
+    def __init__(self, audio_sample_rate: int) -> None:
         """
         Create a synthesizer object by instantiating an audio server using
         Pyo. Additionally, declare an oscillator and envelope generator,
@@ -35,27 +36,24 @@ class Synth():
         """
         print("\n\n\t##### Initializing Synthesizer #####\n")
         # Create a server to handle all communications with
-        # Portaudio and Portaudio MIDI
-        self.server = Server(sr=48000)
+        # Portaudio and Portaudio MIDI.
+        self.server = Server(audio_sample_rate)
 
-        # Select the device with the 'default' name
+        # Linux requires selecting the device with 'default' name.
         if platform == "linux":
-            pa_list_devices()
-            print("\tSelect device with 'default' name")
-            device = int(input("\n\tSelect audio device: "))
-            self.server.setOutputDevice(device)
+            self.set_output_device()
 
-        # the boot() function boots the server
+        # the boot() function boots the server.
         # booting the server includes:
         #     - opening Audio and MIDI interfaces
         #     - setup of Sample Rate and Number of Channels
         self.server.boot()
         print("\tAudio server initialized")
 
-        # Start audio processing in the server
+        # Start audio processing in the server.
         self.server.start()
 
-        # Create an envelope generator
+        # Create an envelope generator.
         self.amp_env = Adsr(attack=0.01,
                             decay=0.2,
                             sustain=0.5,
@@ -63,7 +61,7 @@ class Synth():
                             dur=0.5,        # duration is expressed in seconds
                             mul=0.5)
 
-        # Initialize oscillator
+        # Initialize oscillator.
         self.osc = Sine(mul=self.amp_env).out()
 
         self.settings()
@@ -74,40 +72,9 @@ class Synth():
         """
         self.amp_env.play()
 
-    #######################
-    ### SCALE FUNCTIONS ###
-    #######################
-
-    def select_scale(self) -> None:
-        """
-        Display and prompt user to choose from the scales declared in
-        constants.py.
-        """
-        # Display available scales to the user
-        print("\n\tIndex of scales")
-        [print(f"\t\t{k}") for k in scales.keys()]
-
-        while True:
-            scale = input("\n\tSelect your scale (type the name): ").lower()
-            if scale in scales.keys():
-                break
-            else:
-                print("Please input the name of an available scale.")
-
-        while True:
-            n_octaves = int(input("\tSelect number of octaves: "))
-            # The second value of the tuple contained in current_base contains
-            # the maximum octave value available for the selected base.
-            if n_octaves >= 1 or n_octaves <= self.cur_base[1]:
-                break
-            else:
-                print(f"""
-                Please choose a number between 1 and {self.cur_base[1]} inclusive.
-                If selection exceeds maximum 8ve range for the selected base,
-                it will be truncated to that maximum value.
-                """)
-
-        self.set_scale(scale, n_octaves)
+    """
+    SCALE FUNCTIONS
+    """
 
     def set_base(self, tonal_cntr: str = DEF_TONAL_CENTER,
                  mult: str = DEF_BASE_MULTIPLIER) -> None:
@@ -131,21 +98,74 @@ class Synth():
         print(f"\tOscillator Frequency: {f:.2f}")
         self.osc.freq = f
 
-    def set_scale(self, scale: str = DEF_SCALE,
-                  n_octaves: int = DEF_NUM_OCTAVES) -> None:
+    def set_oct_range(self, oct_range: int = DEF_NUM_OCTAVES) -> None:
+        """
+        Verify that the set octave range is lesser than or equal to the
+        maximum octave range for the selected frequency base multiplier.
+        If the set octave range exceeds this maximum octave range, the
+        octave range will be truncated to match the maximum multiplier for
+        the given frequency base.
+        """
+        # The minimum octave range available is 1.
+        if oct_range < 1:
+            self.oct_range = 1
+            return
+        
+        # Truncate value to maximum availble octave range for the selected
+        # frequency base if it exeeds it. The second value of the tuple
+        # contained in cur_base contains the maximum octave value
+        # available for the selected base.
+        if oct_range > self.cur_base[1]:
+            self.oct_range = self.cur_base[1]
+            return
+
+        self.oct_range = oct_range
+
+    def sel_oct_range_and_scale(self) -> None:
+        """
+        Display and prompt user to choose a scale and an octave range.
+        Available scales and ranges are declared in 'constants.py'.
+        This function is only run when initializing the synth, and 
+        choosing custom settings.
+        """
+        # Display available scales to the user.
+        print("\n\tIndex of scales")
+        [print(f"\t\t{k}") for k in scales.keys()]
+
+        # Prompt user to choose a scale.
+        while True:
+            scale = input("\n\tSelect your scale (type the name): ").lower()
+            # Verify that their selected scale is an available scale.
+            if scale in scales.keys():
+                break
+            else:
+                print("Please input the name of an available scale.")
+
+        # Prompt user to choose an octave range.
+        while True:
+            try:
+                oct_range = int(input("\tSelect number of octaves: "))
+                break
+            # Verify that input is a number.
+            except ValueError:
+                print(f"Please choose a number between 1 and \
+                    {self.cur_base[1]} inclusive. If selection is lesser \
+                    than 1, the octave range will be set to one. If the \
+                    number exceeds the maximum octave range for the selected \
+                    base ({self.cur_base[1]}), it will be truncated to that \
+                    maximum value.")
+
+        # Set chosen values.
+        self.set_oct_range(oct_range)
+        self.set_scale(scale)
+
+    def set_scale(self, scale: str = DEF_SCALE) -> None:
         """
         Sets the scale that will be used for mapping the input data.
         Setting the scale implies storing the name of the currently selected
         scale, as well as the twelve-tone system structure of the scale. This
         representation takes into account the octave range of the scale.
         """
-        # Make sure the octave length does not exceed the 8ve range for the
-        # selected base. This is done when the octave base changes.
-        if n_octaves <= self.cur_base[1]:
-            self.oct_range = n_octaves
-        else:
-            self.oct_range = self.cur_base[1]
-
         # Tuple with the name of the currently selected scale, and the
         # structure of the scale as a np.array matching the scale structure,
         # with extended number of steps to match the number of octaves.
@@ -155,9 +175,9 @@ class Synth():
         print(f"\n\tCurrent Scale: {self.scale[0].capitalize()}")
         print(f"\tScale structure: {self.scale[1]}")
 
-    ################
-    ### SETTINGS ###
-    ################
+    """
+    SETTINGS
+    """
 
     def set_bpm(self, bpm: float = DEF_BPM) -> None:
         """
@@ -192,6 +212,7 @@ class Synth():
         # Set default settings
         if x.lower() != "n":
             self.set_base()
+            self.set_oct_range()
             self.set_scale()
             self.set_bpm()
             self.set_pulse_rate()
@@ -219,8 +240,8 @@ class Synth():
 
             self.set_base(tonal_center, base_mult)
 
-            # Set scale
-            self.select_scale()
+            # Set octave range and scale
+            self.sel_oct_range_and_scale()
 
             # Set clock
             bpm = int(input("\n\tChoose quarter note BPM: "))
@@ -240,9 +261,9 @@ class Synth():
             else:
                 self.set_pulse_rate()
 
-    ########################
-    ### SERVER FUNCTIONS ###
-    ########################
+    """
+    SERVER FUNCTIONS
+    """
 
     def stop_server(self) -> None:
         """
@@ -252,9 +273,31 @@ class Synth():
         # Stop the server
         self.server.stop()
 
-    ##############
-    ### RENDER ###
-    ##############
+    def set_output_device(self) -> None:
+        """
+        Used in Linux to select the correct audio device. Make sure to select
+        the 'default' named device for proper operation of the Pyo server.
+        """
+        available_devices = pa_list_devices()
+
+        # Automatic selection of corresponding device.
+        for device in available_devices:
+            if "name: default" in device:
+                if device[1] == ':':
+                    device_number = int(device[0])
+                elif device[2] == ':':
+                    device_number = int(device[0:2])
+        
+        # Manual selection if automatic selection fails.
+        if not device_number:
+            print("\tSelect device with 'default' name")
+            device_number = int(input("\n\tSelect audio device: "))
+            
+        self.server.setOutputDevice(device)
+
+    """
+    RENDER
+    """
 
     def get_render_path(self) -> str:
         """
