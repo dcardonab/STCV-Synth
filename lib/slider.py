@@ -1,6 +1,6 @@
 import cv2
 from shapely.geometry import Point
-from geometry_utility import create_rectangle_array, point_intersects
+from lib.geometry_utility import create_rectangle_array, point_intersects
 
 
 class Slider:
@@ -21,6 +21,9 @@ class Slider:
         self.y1 = y1
         self.x2 = x2
         self.y2 = y2
+
+    def get_bpm(self):
+        return self.BPM
 
     def draw_controls(
         self,

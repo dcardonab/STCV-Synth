@@ -41,6 +41,7 @@ async def main():
 
     # Create output audio file.
     out_path = synth.get_render_path()
+    
 
     print("\n\n\t##### Starting performance #####\n")
     try:
@@ -56,8 +57,7 @@ async def main():
 
         # Start recording of the new file
         synth.server.recstart(out_path + ".wav")
-
-        # TODO add .csv
+        dfl = lib.data_frame_logger(f"{out_path}.csv")
 
         while True:
 
@@ -92,6 +92,10 @@ async def main():
                     sensor_tile.quaternions_data.get()
                 )
 
+                new_dataframe = dfl.new_record(environment, motion, quaternions)
+                await dfl.add_record(new_dataframe)
+                
+                
             scale_step = random.choice(synth.scale[1])
             synth.set_freq(scale_step)
             synth.play()
@@ -111,7 +115,8 @@ async def main():
             await sensor_tile.stop_notification(ST_handles['motion'])
             await sensor_tile.stop_notification(ST_handles['quaternions'])
             await sensor_tile.BLE_disconnect()
-
+        
+        await dfl.write_log()
 
 if __name__ == "__main__":
     asyncio.run(main())

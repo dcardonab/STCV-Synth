@@ -1,5 +1,5 @@
 import cv2
-from geometry_utility import create_rectangle_array, point_intersects
+from lib.geometry_utility import create_rectangle_array, point_intersects
 from shapely.geometry import Point
 
 

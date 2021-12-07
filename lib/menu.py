@@ -1,5 +1,5 @@
-from constants import scales
-from geometry_utility import create_rectangle_array, point_intersects
+from lib.constants import scales
+from lib.geometry_utility import create_rectangle_array, point_intersects
 import cv2
 
 

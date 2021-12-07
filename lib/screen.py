@@ -1,16 +1,15 @@
 import cv2
-
 import os
-import hand_tracking as htm
+import time
 from shapely.geometry import Point
-from geometry_utility import create_rectangle_array, point_intersects
-from plus_minus_subdivisions import PlusMinusSubdivions
-from plus_minus_buttons import PlusMinusButtons
-from menu import Menu
-from slider import Slider
-from constants import scales
+from lib.geometry_utility import create_rectangle_array, point_intersects
+from lib.plus_minus_subdivisions import PlusMinusSubdivions
+from lib.plus_minus_buttons import PlusMinusButtons
+from lib.menu import Menu
+from lib.slider import Slider
+from lib.constants import scales
 import asyncio
-
+from lib.hand_tracking import HandDetector
 
 class Screen:
     """
@@ -23,7 +22,7 @@ class Screen:
         self.cap.set(4, screen_size_y)
         self.header_index = 0
         self.overlayList = self.setup_header_list()
-        self.detector = htm.HandDetector(min_detection_confidence=0.50)
+        self.detector = HandDetector(min_detection_confidence=0.50)
         self.switch_delay = 0
         self.BPM = 100
         self.octave_range = 1
@@ -31,6 +30,7 @@ class Screen:
         self.subdivision = 1
         self.pulse_sustain_index = 3
         self.left_right_index = 4
+    
 
         self.init_controls()
 
@@ -214,22 +214,20 @@ class Screen:
 
         return img
 
-    async def show(self):
+    async def show(self, queue):
         """
-        This show method consists of a loop that processes 
-        the hand movements of the user.  
-        :return: 
+
+        :return:
         """
         while True:
+
 
             # Import the image
             success, img = self.cap.read()
             img = cv2.flip(img, 1)
-
-            
             """
-            Find hand landmarks
-            """
+                        Find hand landmarks
+                        """
             img = self.detector.findHands(img=img, draw=False)
             for handNumber in range(0, self.detector.handCount()):
                 """
@@ -239,35 +237,37 @@ class Screen:
                     img, hand_number=handNumber, draw=True
                 )
                 img = self.event_processing(img, lmList)
-
+            
+            # Draws the controls
             img = self.scales_menu.draw(img)
             img = self.pulse_sustain_menu.draw(img)
             img = self.left_right_menu.draw(img)
 
             header = self.overlayList[self.header_index]
-
             if self.header_index == 1:
+                #  Displays the run control menu
                 self.draw_run_controls(img)
 
                 self.pulse_sustain_menu.set_visible(False)
                 self.scales_menu.set_visible(False)
                 self.left_right_menu.set_visible(False)
             else:
+                # Pause controls run controls
                 self.pulse_sustain_menu.set_visible(True)
                 self.scales_menu.set_visible(True)
                 self.left_right_menu.set_visible(True)
                 self.hide_run_controls()
 
             assert isinstance(header, object)
+            
             img[0: header.shape[0], 0: header.shape[1]] = header
-
+            
             cv2.imshow("Image", img)
-
             cv2.waitKey(1)
             self.switch_delay += 1
             if self.switch_delay > 500:
                 self.switch_delay = 0
-
+       
 
 if __name__ == "__main__":
     screen = Screen()

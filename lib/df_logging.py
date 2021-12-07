@@ -27,6 +27,7 @@ class data_frame_logger:
         
         if len(self.data_frame_logger) > self.max_record:
             await self.write_log()
+            self.data_frame_logger = None
 
     async def write_log(self):
         
@@ -89,8 +90,7 @@ class data_frame_logger:
         columns = environment_columns + motion_columns + quaternions_columns
     
         all_data = environment_data + motion_data + quaternions_data
-        print(columns)
-        print(all_data)
+ 
         # Using zip to create a new dictionary that form the row for the
         # data frame
         record = dict(zip(columns, all_data))
@@ -98,7 +98,6 @@ class data_frame_logger:
         # Makes data matching more simple
         record_uuid = uuid.uuid4()
         
-        print(record)
         # returning a pandas dataframe to be merged with other data frames
         df = pd.DataFrame(record, index=[str(record_uuid)])
         

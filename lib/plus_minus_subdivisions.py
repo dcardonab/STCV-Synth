@@ -1,5 +1,4 @@
-from plus_minus_buttons import PlusMinusButtons
-
+from lib.plus_minus_buttons import PlusMinusButtons
 
 class PlusMinusSubdivions(PlusMinusButtons):
     pass
