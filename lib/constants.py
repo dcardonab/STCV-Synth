@@ -1,3 +1,14 @@
+# Synthesizer defaults
+DEF_BASE_MULTIPLIER = '4'
+DEF_BPM = 100
+DEF_SUBDIVISION = '16'
+DEF_NUM_OCTAVES = 2
+DEF_SCALE = 'dorian'
+DEF_TONAL_CENTER = 'A'
+
+# ST Constants
+ST_FIRMWARE_NAME = 'AM1V310'
+
 # Tempered Scales
 scales = {
     # Diatonic Modes

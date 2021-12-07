@@ -7,34 +7,32 @@ from sys import platform
 from constants import *
 
 
-DEF_BASE_MULTIPLIER = '4'
-DEF_BPM = 100
-DEF_SUBDIVISION = '16'
-DEF_NUM_OCTAVES = 2
-DEF_SCALE = 'dorian'
-DEF_TONAL_CENTER = 'A'
-
-
 class Synth():
     """
-        List of all properties include:
+    List of all properties include:
 
-            Synth properties:
-                self.server
-                self.amp_env
-                self.osc
+        Synth properties:
+            self.server
+            self.amp_env
+            self.osc
 
-            Settings properties:
-                self.cur_base       # As it relates to base_mult_options
-                self.cur_tonal_center
-                self.base_hz
-                self.oct_range
-                self.scale          # tuple: (scale name, np.array structure)
-                self.bpm
-                self.pulse_range
+        Settings properties:
+            self.cur_base       # As it relates to base_mult_options
+            self.cur_tonal_center
+            self.base_hz
+            self.oct_range
+            self.scale          # tuple: (scale name, np.array structure)
+            self.bpm
+            self.pulse_range
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
+        """
+        Create a synthesizer object by instantiating an audio server using
+        Pyo. Additionally, declare an oscillator and envelope generator,
+        and run logic for setting the properties that will determine how
+        frequencies and timings will be performed when executing the synth.
+        """
         print("\n\n\t##### Initializing Synthesizer #####\n")
         # Create a server to handle all communications with
         # Portaudio and Portaudio MIDI
@@ -70,15 +68,21 @@ class Synth():
 
         self.settings()
 
-    def play(self):
-        # Play the envelope generator
+    def play(self) -> None:
+        """
+        Trigger the envelope generator.
+        """
         self.amp_env.play()
 
     #######################
     ### SCALE FUNCTIONS ###
     #######################
 
-    def select_scale(self):
+    def select_scale(self) -> None:
+        """
+        Display and prompt user to choose from the scales declared in
+        constants.py.
+        """
         # Display available scales to the user
         print("\n\tIndex of scales")
         [print(f"\t\t{k}") for k in scales.keys()]
@@ -105,21 +109,36 @@ class Synth():
 
         self.set_scale(scale, n_octaves)
 
-    # The base is the lowest possible frequency of the synth
-    def set_base(self, tonal_cntr=DEF_TONAL_CENTER, mult=DEF_BASE_MULTIPLIER):
-        # Mult value is stored in current_base for
-        # accessing it when defining scale
+    def set_base(self, tonal_cntr: str = DEF_TONAL_CENTER,
+                 mult: str = DEF_BASE_MULTIPLIER) -> None:
+        """
+        The base is the lowest possible frequency of the synth. It is set by
+        multiplying a tonal center (frequency) with a base multiplier, which
+        sets the lowest accessible frequency.
+        """
+        # base_mult_options values are tuples containing the base multiplier,
+        # as well as the maximum octave range available for that base.
         self.cur_base = base_mult_options[mult]
         self.cur_tonal_center = tonal_cntr
         self.base_hz = tonal_center_options[tonal_cntr] * self.cur_base[0]
         print(f"\n\tBase frequency: {self.base_hz}Hz")
 
-    def set_freq(self, scale_step):
+    def set_freq(self, scale_step: int) -> None:
+        """
+        Set frequency by converting a given scale step to frenquency.
+        """
         f = float(self.base_hz * 2 ** (scale_step / 12))
         print(f"\tOscillator Frequency: {f:.2f}")
         self.osc.freq = f
 
-    def set_scale(self, scale=DEF_SCALE, n_octaves=DEF_NUM_OCTAVES):
+    def set_scale(self, scale: str = DEF_SCALE,
+                  n_octaves: int = DEF_NUM_OCTAVES) -> None:
+        """
+        Sets the scale that will be used for mapping the input data.
+        Setting the scale implies storing the name of the currently selected
+        scale, as well as the twelve-tone system structure of the scale. This
+        representation takes into account the octave range of the scale.
+        """
         # Make sure the octave length does not exceed the 8ve range for the
         # selected base. This is done when the octave base changes.
         if n_octaves <= self.cur_base[1]:
@@ -140,16 +159,30 @@ class Synth():
     ### SETTINGS ###
     ################
 
-    def set_bpm(self, bpm=DEF_BPM):
+    def set_bpm(self, bpm: float = DEF_BPM) -> None:
+        """
+        Method sets the global BPM of the synthesizer, which is used
+        in combination with the pulse rate for pulsing mode, as well
+        as future implementation of time-domain audio effects.
+        """
         self.bpm = 60 / bpm
         print(f"\n\tBPM: Quarter Note {bpm}")
 
-    def set_pulse_rate(self, sub_division=DEF_SUBDIVISION):
+    def set_pulse_rate(self, sub_division: str = DEF_SUBDIVISION) -> None:
+        """
+        The pulse rate is effectively the implemented subdivision of
+        the synthesizer's BPM.
+        """
         self.pulse_rate = self.bpm / bpm_sub_divisions[sub_division]
         print(f"\n\tSub-Division = {sub_division_options[sub_division]}")
         print(f"\tPulse rate = {self.pulse_rate:.2f} seconds")
 
-    def settings(self):
+    def settings(self) -> None:
+        """
+        Sets the synthesizer settings upon launching the program.
+        It can either follow a default init routine, or a custom one
+        that allows the user to specify their settings of choice.
+        """
         # Check if the user would like to use default settings.
         x = input("""
         Would you like to use the synthesizer's defaults?
@@ -211,7 +244,10 @@ class Synth():
     ### SERVER FUNCTIONS ###
     ########################
 
-    def stop_server(self):
+    def stop_server(self) -> None:
+        """
+        Stops the audio server.
+        """
         print("\tShutting down the audio server.\n")
         # Stop the server
         self.server.stop()
@@ -220,10 +256,12 @@ class Synth():
     ### RENDER ###
     ##############
 
-    def get_render_path(self):
+    def get_render_path(self) -> str:
         """
-        Ensure that previous files are not overwritten by using the
-        'exists()' method with an iterator.
+        Create a render path that prevents previous files from being
+        overwritten.
+        Implemented in the synth abstraction for easy access of the
+        synth properties.
         """
         out_folder = "renders"
 

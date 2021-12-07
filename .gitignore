@@ -1,8 +1,9 @@
 # MAC
 .DS_Store
 
-# Python
+# Python and other libraries
 __pycache__/
+mediapipe/
 
 # SensorTile Firmware working directory
 */STM32CubeFunctionPack_ALLMEMS1_V3.1.0
