@@ -4,6 +4,7 @@ import time
 from lib.df_logging import data_frame_logger
 from lib.screen import Screen
 from lib.geometry_utility import *
+from lib.plus_minus_base import PlusMinusBase
 from lib import *
 import cv2
 
@@ -32,6 +33,16 @@ def test_df_logging():
     server = loop.run_until_complete(df_logging())
     task = asyncio.run(df_logging())
     
+def test_plus_minus():
+    pmb = PlusMinusBase(
+            x=1000, y=550, label="8ve base", label_offset_x=840, visible=False)
+
+    x = pmb.get_current_value()
+    y = pmb.get_current_value_constant()
+    print(x)
+
+
+
 def test_ui_loop():
 
     screen = Screen()
@@ -78,6 +89,6 @@ def test_ui_loop():
 
 if __name__ == "__main__":
     
-    test_ui_loop()
+    test_plus_minus()
     
     
