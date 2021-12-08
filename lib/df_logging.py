@@ -55,6 +55,7 @@ class data_frame_logger:
         
         if environment and len(environment) == 2:
             # Grabbing the column headings from the tuples
+            # lists can be concatenated through the addition sign
             environment_columns  = ['e_ticks'] + \
                 list(environment[1].keys())
             # Retrieving the column values from the environment tuple
@@ -77,19 +78,11 @@ class data_frame_logger:
             raise ValueError("motion parameter is null or incorrect shape")
         
         if quaternions and len(quaternions) == 2:
-            # Since column headings need to be unique, hard coding was
-            # required for the three stored quaternions.
-            quaternions_columns = ['m_ticks'] + [
-                'i_0', 'j_0', 'k_0', 'roll_0', 'pitch_0', 'yaw_0',
-                'i_1', 'j_1', 'k_1', 'roll_1', 'pitch_1', 'yaw_1',
-                'i_2', 'j_2', 'k_2', 'roll_2', 'pitch_2', 'yaw_2'
-            ]
-            # Retrieving the column values from the motion tuple
-            #  lists can be concatenated through the addition sign
+            # Grabbing the column headings from the tuples
+            quaternions_columns = ['q_ticks'] + list(quaternions[1].keys())
+            # Retrieving the column values from the quaternion tuple
             quaternions_data = [quaternions[0]] + \
-                                list(quaternions[1][0].values()) + \
-                                list(quaternions[1][1].values()) + \
-                                list(quaternions[1][2].values())
+                               list(quaternions[1].values())
 
         else:
             # Raise a value error if invalid data is passed into the function

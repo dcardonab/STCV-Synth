@@ -2,7 +2,12 @@
 
 The following updates were made to the STMicroelectronics distributed firmware, which can be found in the following link: [UCLA AllMEMS Firmware](www.st.com/content/st_com/en/premium-content/sensortile-curriculum-fp-sns-allmems1_firmware_zip.html)
 
-Please replace the `main.c` and the `sensor_service.c` files provided with the STMicroelectronics firmware in the following path: `STM32CubeFunctionPack_ALLMEMS1_V3.1/Projects/Multi/Applications/ALLMEMS1/Src`
+To add the STCV-Synth firmware into the distributed firmware listed above, please do the follwing substitutions (*note that this is only necessary if you wish to further modify the firmware using STM32CubeIDE*):
+
+* Replace `main.c` and the `sensor_service.c` in the following path: `STM32CubeFunctionPack_ALLMEMS1_V3.1/Projects/Multi/Applications/ALLMEMS1/Src/`
+
+* Replace `ALLMEMS1_config.h` in the following path: `STM32CubeFunctionPack_ALLMEMS1_V3.1Projects/Multi/Applications/ALLMEMS1/Inc/`
+
 
 ## Update ENV rate
 
@@ -40,4 +45,12 @@ Additionally, the data was printed as bytearrays to the terminal for correlation
 
 ## Update Quaternion Rate
 
-The quaternion transfer rate was set to transfer 1 vector quaternion (the thee imaginary values unconstrained by unit length) every 10ms. This is done by modifying the ALL
+The quaternion transfer rate was set to transfer 1 vector quaternion (the thee imaginary values unconstrained by unit length) every 10ms. This is done by modifying the `ALLMEMS1_config.h` file constants:
+
+**FROM**
+[line 74]   `#define QUAT_UPDATE_MUL_10MS 3`
+[line 77]   `#define SEND_N_QUATERNIONS 3`
+
+**TO**
+[line 74]   `#define QUAT_UPDATE_MUL_10MS 1`
+[line 77]   `#define SEND_N_QUATERNIONS 1`

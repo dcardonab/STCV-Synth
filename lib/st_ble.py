@@ -33,12 +33,8 @@ class SensorTile():
               'mag_x', 'mag_y', 'mag_z',
               'acc_mag', 'gyr_mag', 'mag_mag'
 
-        'quaternions_data' second tuple value is a list
-        containing three dictionaries.
-        Each dict has keys: 'i', 'j', 'k', 'roll', 'pitch', 'yaw'
-
-        e.g., Syntax to get 'roll' value of the first quaternion:
-        quaternions[1][0]['roll']
+        'quaternions_data' second tuple is a dictionary.
+        Keys: 'i', 'j', 'k', 'roll', 'pitch', 'yaw'
         """
         self.address = address
         self.client = BleakClient(self.address)
@@ -147,16 +143,17 @@ class SensorTile():
         motion_data['mag_y'] = struct.unpack_from("<h", data[16:18])[0]
         motion_data['mag_z'] = struct.unpack_from("<h", data[18:])[0]
 
-        # Calculate Magnitude of each parameter
-        motion_data['acc_mag'] = magnitude(
+        # Calculate Magnitude of each parameter.
+        # Magnitudes are rounded to 2 decimal places.
+        motion_data['acc_mag'] = round(magnitude(
             motion_data['acc_x'], motion_data['acc_y'], motion_data['acc_z']
-        )
-        motion_data['gyr_mag'] = magnitude(
+        ), 2)
+        motion_data['gyr_mag'] = round(magnitude(
             motion_data['gyr_x'], motion_data['gyr_y'], motion_data['gyr_z']
-        )   
-        motion_data['mag_mag'] = magnitude(
+        ), 2)
+        motion_data['mag_mag'] = round(magnitude(
             motion_data['mag_x'], motion_data['mag_y'], motion_data['mag_z']
-        )
+        ), 2)
         
         # Add data to Queue
         await self.motion_data.put((time_stamp, motion_data))
@@ -172,45 +169,27 @@ class SensorTile():
         """
         # Store incoming data in independent dictionaries
         # Initialize multiple dictionaries using a range for loop.
-        q1, q2, q3 = ({} for _ in range(3))
+        quat_data = {}
 
         # Retrieve time stamp
         time_stamp = struct.unpack_from("<h", data[:2])[0]
 
         # Retrieve First Quaternion
-        q1['i'] = struct.unpack_from("<h", data[2:4])[0]
-        q1['j'] = struct.unpack_from("<h", data[4:6])[0]
-        q1['k'] = struct.unpack_from("<h", data[6:8])[0] 
+        quat_data['i'] = struct.unpack_from("<h", data[2:4])[0]
+        quat_data['j'] = struct.unpack_from("<h", data[4:6])[0]
+        quat_data['k'] = struct.unpack_from("<h", data[6:])[0]
 
-        # Retrieve Second Quaternion
-        q2['i'] = struct.unpack_from("<h", data[8:10])[0]
-        q2['j'] = struct.unpack_from("<h", data[10:12])[0]
-        q2['k'] = struct.unpack_from("<h", data[12:14])[0]
-
-        # Retrieve Third Quaternion
-        q3['i'] = struct.unpack_from("<h", data[14:16])[0]
-        q3['j'] = struct.unpack_from("<h", data[16:18])[0]
-        q3['k'] = struct.unpack_from("<h", data[18:])[0]
-
-        # Calculate Euler angles for first quaternion
-        q1['roll'], q1['pitch'], q1['yaw'] = vecQ_to_euler(
-            q1['i'], q1['j'], q1['k']
-        )
-
-        # Calculate Euler angles for second quaternion
-        q2['roll'], q2['pitch'], q2['yaw'] = vecQ_to_euler(
-            q2['i'], q2['j'], q2['k']
-        )
-
-        # Calculate Euler angles for third quaternion
-        q3['roll'], q3['pitch'], q3['yaw'] = vecQ_to_euler(
-            q3['i'], q3['j'], q3['k']
+        # Calculate Euler angles for first quaternion.
+        # Euler angles are rounded to 2 decimal places in 'util.py'.
+        quat_data['roll'], quat_data['pitch'], quat_data['yaw'] = \
+            vecQ_to_euler(
+                quat_data['i'], quat_data['j'], quat_data['k']
         )
         
         # Add data to Queue. Note that the quaternion dictionaries are passed
         # as a single list. Since this list is contained in a tuple, the
         # syntax to retrieve quaternion data is: quaternion[1][0]['roll']
-        await self.quaternions_data.put((time_stamp, [q1, q2, q3]))
+        await self.quaternions_data.put((time_stamp, quat_data))
 
 
 async def find_ST(firmware_name: str) -> Union[str, None]:

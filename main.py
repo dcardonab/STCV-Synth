@@ -165,11 +165,13 @@ async def main():
             screen.switch_delay += 1
             if screen.switch_delay > 500:
                 screen.switch_delay = 0
+        
+            # Update Synth parameters based on CV controllers
+            synth.set_bpm(screen.bpm_slider.get_bpm())
+            synth.set_pulse_rate()
 
         # Update synth values
         scale_step = random.choice(synth.scale[1])
-        synth.set_bpm(screen.bpm_slider.get_bpm())
-        synth.set_pulse_rate()
         synth.set_freq(scale_step)
         synth.play()
         await asyncio.sleep(synth.pulse_rate)

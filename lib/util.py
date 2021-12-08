@@ -24,8 +24,8 @@ def normalize(*args):
 ####################
 
 # Calculate the Euler Angles from a vector quaternion.
-# The assumed value of the W (real) component is 0
-# as the information received from the ST is a vector quaternion.
+# In a relative quaternion, the initial value of the W (real) component
+# is 1. The information received from the ST is a vector quaternion.
 def vecQ_to_euler(i, j, k):
     w = 1
     # Normalize vector quaternion to set components in range for
@@ -36,22 +36,26 @@ def vecQ_to_euler(i, j, k):
 
 # Pitch is the rotations about the y axis (between -90 and 90 deg)
 def pitch(w, i, j, k):
-    value = 2 * (w * j - i * k)
+    pitch = 2 * (w * j - i * k)
     # The following conditions prevent passing a value outside the arcsine
     # input range, which is -1 to 1 inclusive.
-    if value > 1:
-        return degrees(asin(1))
-    elif value < -1:
-        return degrees(asin(-1))
+    if pitch > 1:
+        pitch = degrees(asin(1))
+    elif pitch < -1:
+        pitch = degrees(asin(-1))
     else:
-        return degrees(asin(value))
+        pitch = degrees(asin(pitch))
+
+    return round(pitch, 2)
 
 
 # Roll is the rotation about the x axis (between -180 and 180 deg)
 def roll(w, i, j, k):
-    return degrees(atan2(2 * (w * i + j * k), 1 - 2 * (i ** 2 + j ** 2)))
+    roll = degrees(atan2(2 * (w * i + j * k), 1 - 2 * (i ** 2 + j ** 2)))
+    return round(roll, 2)
 
 
 # Yaw is the rotation about the z axis (between -180 and 180)
 def yaw(w, i, j, k):
-    return degrees(atan2(2 * (w * k + i * j), 1 - 2 * (j ** 2 + k ** 2)))
+    yaw = degrees(atan2(2 * (w * k + i * j), 1 - 2 * (j ** 2 + k ** 2)))
+    return round(yaw, 2)
