@@ -1,6 +1,6 @@
 import cv2
 from shapely.geometry import Point
-from lib.geometry_utility import create_rectangle_array, point_intersects
+from lib.geometry_utility import create_rectangle_array, point_intersects, polygon_bounds
 
 
 class Slider:
@@ -10,7 +10,7 @@ class Slider:
     """
     def __init__(
         self, BPM=100, visible=True, textlabel="BPM",
-        x1=1000, y1=250, x2=1225, y2=300
+        x1=1000, y1=250, x2=1225, y2=300, min_value=40, max_value=220
     ):
         # Setting the text to be displayed before the control, to the left of the
         # slider
@@ -22,11 +22,19 @@ class Slider:
         self.y1 = y1
         self.x2 = x2
         self.y2 = y2
+        self.min_value = min_value
+        self.max_value = max_value
 
     def get_bpm(self):
         return self.BPM
 
     def set_bpm(self, bpm):
+        if bpm is None:
+            return bpm
+        if int(bpm) < self.min_value:
+            bpm = self.min_value
+        if int(bpm) > self.max_value:
+            bpm = self.max_value
         self.BPM = bpm
 
     def draw_controls(self, img):
@@ -84,6 +92,12 @@ class Slider:
         point = Point(x1, y1)
         bpm_rectangle = create_rectangle_array((self.x1, self.y1), (self.x2, self.y2))
         if point_intersects(point, bpm_rectangle):
-            self.BPM = int(x1 - 1000)
+            bounds = polygon_bounds(bpm_rectangle)
+            # The countrol needs to read the X1 boundary 
+            # to avoid hardcoding of values
+            self.set_bpm(int(x1 - bounds[0]))
+            
+            # self.BPM = 
+
 
         return img

@@ -16,6 +16,9 @@ def create_rectangle_array(pt1, pt2):
     points.append((pt2[0], pt1[1]))
     return points
 
+def polygon_bounds(polygon_array):
+    polygon = Polygon(polygon_array)
+    return polygon.bounds
 
 def point_intersects(point, polygon_array):
     """

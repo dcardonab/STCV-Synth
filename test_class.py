@@ -5,6 +5,7 @@ from lib.df_logging import data_frame_logger
 from lib.screen import Screen
 from lib.geometry_utility import *
 from lib import *
+import cv2
 
 async def df_logging():
     dfl = data_frame_logger("test.csv", max_record=100000)
@@ -31,22 +32,52 @@ def test_df_logging():
     server = loop.run_until_complete(df_logging())
     task = asyncio.run(df_logging())
     
-async def test_ui_loop():
+def test_ui_loop():
 
-    queue = asyncio.Queue()
     screen = Screen()
-    
-    # loop = asyncio.get_event_loop()
-    # server = loop.run_until_complete(screen.show())
-    producer = asyncio.create_task(screen.show(queue))
-    await asyncio.gather(producer)
-    print('---- done producing')
+    while True:
+        if screen:
+                # Import the image
+                _, img = screen.cap.read()
+                img = cv2.flip(img, 1)
+
+                # Find hand landmarks (i.e., nodes)
+                img = screen.detector.findHands(img=img, draw=False)
+                for handNumber in range(screen.detector.handCount()):
+                    # lmList is a list of all landmarks present in the screen.
+                    lmList = screen.detector.find_position(
+                        img, hand_number=handNumber, draw=True
+                    )
+                    img = screen.event_processing(img, lmList)
+
+                header = screen.overlayList[screen.header_index]
+                # Determine what controllers to display in the GUI.
+                if screen.header_index == 0:
+                    screen.hide_settings_controls()
+                    img = screen.draw_run_controls(img)
+                    
+                else:
+                    screen.hide_run_controls()
+                    img = screen.draw_settings_controls(img)
+                    
+                assert isinstance(header, object)
+                
+                img[0: header.shape[0], 0: header.shape[1]] = header
+                
+                cv2.imshow("Image", img)
+                cv2.waitKey(1)
+
+                # Provision to prevent the toggle from staying engaged
+                screen.switch_delay += 1
+                if screen.switch_delay > 500:
+                    screen.switch_delay = 0
+
 
     subdiviion = screen.plus_minus_subdivision.get_current_value()
     bpm = screen.bpm_slider.get_bpm()
 
 if __name__ == "__main__":
     
-    asyncio.run(df_logging())
+    test_ui_loop()
     
     
