@@ -9,7 +9,8 @@ class Slider:
     the bounding rectangle. 
     """
     def __init__(
-        self, BPM=100, visible=True, textlabel="BPM", x1=1000, y1=250, x2=1225, y2=300
+        self, BPM=100, visible=True, textlabel="BPM",
+        x1=1000, y1=250, x2=1225, y2=300
     ):
         # Setting the text to be displayed before the control, to the left of the
         # slider
@@ -25,10 +26,10 @@ class Slider:
     def get_bpm(self):
         return self.BPM
 
-    def draw_controls(
-        self,
-        img,
-        ):
+    def set_bpm(self, bpm):
+        self.BPM = bpm
+
+    def draw_controls(self, img):
         '''
         draw_controls drawing to layout the slider control
         :param img: 

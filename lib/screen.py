@@ -1,15 +1,14 @@
 import cv2
 import os
-import time
-from shapely.geometry import Point
-from lib.geometry_utility import create_rectangle_array, point_intersects
+# from shapely.geometry import Point
+
+from lib.constants import scales
+# from lib.geometry_utility import create_rectangle_array, point_intersects
+from lib.hand_tracking import HandDetector
 from lib.plus_minus_subdivisions import PlusMinusSubdivions
 from lib.plus_minus_buttons import PlusMinusButtons
 from lib.menu import Menu
 from lib.slider import Slider
-from lib.constants import scales
-import asyncio
-from lib.hand_tracking import HandDetector
 
 class Screen:
     """
@@ -24,17 +23,17 @@ class Screen:
         self.overlayList = self.setup_header_list()
         self.detector = HandDetector(min_detection_confidence=0.50)
         self.switch_delay = 0
-        self.BPM = 100
+        
+        # self.BPM = 100
         self.octave_range = 1
         self.octave_base = 1
         self.subdivision = 1
         self.pulse_sustain_index = 3
         self.left_right_index = 4
-    
 
         self.init_controls()
 
-    def init_controls(self):
+    def init_controls(self, bpm):
         """
         This function is a control initialization function. It is based on
         an old graphically design pattern.  Python prefers to have this all
@@ -77,7 +76,7 @@ class Screen:
             1000, 100, menu_dictionary=left_right_dict, btm_text_color=(255, 0, 255)
         )
         # The slider control is created here with all default values
-        self.bpm_slider = Slider()
+        self.bpm_slider = Slider(BPM=bpm)
 
     def setup_header_list(self, folder_path="lib/header"):
         """
@@ -112,7 +111,7 @@ class Screen:
         img = self.bpm_slider.draw_controls(img)
 
         # The following controls are all instances of
-        # the same controls
+        # the same control
 
         # Subdivision plus-minus control
         self.plus_minus_subdivision.set_visible(True)
@@ -128,16 +127,46 @@ class Screen:
 
         return img
 
-    def hide_run_controls(self):
+    def draw_settings_controls(self, img):
         """
-        hide_run_controls just toggles the control visibility
-        the method could have a boolean parameter, but that
-        decided to be unnecessary
-        :return:
+        draw_settings_controls will set visible the controls of the
+        settings menu.
+        """
+        # Scale selector
+        self.scales_menu.set_visible(True)
+        img = self.scales_menu.draw(img)
+        # Synthesizer mode
+        self.pulse_sustain_menu.set_visible(True)
+        img = self.pulse_sustain_menu.draw(img)
+        # SensorTile hand selection
+        self.left_right_menu.set_visible(True)
+        img = self.left_right_menu.draw(img)
+
+        return img
+
+    def hide_run_controls(self) -> None:
+        """
+        hide_run_controls switches off the visibility of the run controls.
         """
         self.plus_minus_subdivision.set_visible(False)
         self.plus_minus_octave_range.set_visible(False)
         self.plus_minus_octave_base.set_visible(False)
+
+    def hide_settings_controls(self) -> None:
+        """
+        hide_settings_controls switches off the visibility of the settings controls.
+        """
+        self.pulse_sustain_menu.set_visible(False)
+        self.scales_menu.set_visible(False)
+        self.left_right_menu.set_visible(False)
+
+    def show_settings_controls(self) -> None:
+        # Scale selector
+        self.scales_menu.set_visible(True)
+        # Synthesizer mode
+        self.pulse_sustain_menu.set_visible(True)
+        # SensorTile hand selection
+        self.left_right_menu.set_visible(True)
 
     def event_processing(self, img, lm_list):
         """
@@ -147,8 +176,6 @@ class Screen:
         :return: 
         """
         if len(lm_list) != 0:
-
-            
             """
             Tip of index and middle finger
             the following values are the landmarks for any hand
@@ -166,16 +193,17 @@ class Screen:
             """
             Selection mode, if two fingers are up
             Two open fingers are used to determine if we are using 
-            run controls or pause controls
+            run controls or settings controls
             """
-            
             if fingers[1] and fingers[2]:
                 cv2.rectangle(
                     img, (x1, y1 - 15), (x2, y2 + 15), (255, 0, 255), cv2.FILLED
                 )
+
                 # The print function is used for diagnostic purposes only
                 # Will be replaced by logging functionality
-                print("Selection Mode", x1, y1)
+                # print("Selection Mode", x1, y1)
+
                 # checking for the click
                 if y1 < 89:
                     if 0 < x1 < 90:

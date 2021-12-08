@@ -99,7 +99,7 @@ class SensorTile():
         # Store incoming data in a dictionary
         environment_data = {}
 
-        time_stamp = struct.unpack_from("<h", data[0:2])[0]
+        time_stamp = struct.unpack_from("<h", data[:2])[0]
 
         # Pressure is represented by 4 bytes
         environment_data['pressure'] = struct.unpack_from("<h", data[2:6])[0]
@@ -108,7 +108,7 @@ class SensorTile():
 
         # The order of the temp sensors is swapped in the ST GATT transfer.
         environment_data['temp2'] = struct.unpack_from("<h", data[8:10])[0]
-        environment_data['temp1'] = struct.unpack_from("<h", data[10:12])[0]
+        environment_data['temp1'] = struct.unpack_from("<h", data[10:])[0]
         
         # Add data to Queue
         await self.environment_data.put((time_stamp, environment_data))
@@ -125,7 +125,7 @@ class SensorTile():
         # Store incoming data in a dictionary
         motion_data = {}
 
-        time_stamp = struct.unpack_from("<h", data[0:2])[0]
+        time_stamp = struct.unpack_from("<h", data[:2])[0]
 
         # Acceleration
         motion_data['acc_x'] = struct.unpack_from("<h", data[2:4])[0]
@@ -145,7 +145,7 @@ class SensorTile():
         # subtracted from it prior to being sent.
         motion_data['mag_x'] = struct.unpack_from("<h", data[14:16])[0]
         motion_data['mag_y'] = struct.unpack_from("<h", data[16:18])[0]
-        motion_data['mag_z'] = struct.unpack_from("<h", data[18:20])[0]
+        motion_data['mag_z'] = struct.unpack_from("<h", data[18:])[0]
 
         # Calculate Magnitude of each parameter
         motion_data['acc_mag'] = magnitude(
@@ -175,7 +175,7 @@ class SensorTile():
         q1, q2, q3 = ({} for _ in range(3))
 
         # Retrieve time stamp
-        time_stamp = struct.unpack_from("<h", data[0:2])[0]
+        time_stamp = struct.unpack_from("<h", data[:2])[0]
 
         # Retrieve First Quaternion
         q1['i'] = struct.unpack_from("<h", data[2:4])[0]
@@ -190,7 +190,7 @@ class SensorTile():
         # Retrieve Third Quaternion
         q3['i'] = struct.unpack_from("<h", data[14:16])[0]
         q3['j'] = struct.unpack_from("<h", data[16:18])[0]
-        q3['k'] = struct.unpack_from("<h", data[18:20])[0]
+        q3['k'] = struct.unpack_from("<h", data[18:])[0]
 
         # Calculate Euler angles for first quaternion
         q1['roll'], q1['pitch'], q1['yaw'] = vecQ_to_euler(
@@ -206,17 +206,11 @@ class SensorTile():
         q3['roll'], q3['pitch'], q3['yaw'] = vecQ_to_euler(
             q3['i'], q3['j'], q3['k']
         )
-
-        # print(f"Roll: {q3['roll']:.2f}\
-        #         \tPitch: {q3['pitch']:.2f}\
-        #         \tYaw: {q3['yaw']:.2f}", end='\r', flush=True)
-
-        # 'quat_data' is a list containing the dictionaries of each
-        # retrieved quaternion.
-        quat_data = [q1, q2, q3]
         
-        # Add data to Queue
-        await self.quaternions_data.put((time_stamp, quat_data))
+        # Add data to Queue. Note that the quaternion dictionaries are passed
+        # as a single list. Since this list is contained in a tuple, the
+        # syntax to retrieve quaternion data is: quaternion[1][0]['roll']
+        await self.quaternions_data.put((time_stamp, [q1, q2, q3]))
 
 
 async def find_ST(firmware_name: str) -> Union[str, None]:
@@ -233,7 +227,7 @@ async def find_ST(firmware_name: str) -> Union[str, None]:
 
         # Check if an address was returned, and break scan
         # if ST address was found.
-        if isinstance(address, type(str)):
+        if address:
             return address
         else:
             print("""

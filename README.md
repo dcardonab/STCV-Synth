@@ -31,6 +31,7 @@ On the STCV-Synth root folder, run: `python main.py`
 * asyncio
     * [Async IO in Python: A Complete Walkthrough](https://realpython.com/async-io-python/)
     * [Documentation](https://docs.python.org/3/library/asyncio.html)
+    * [Signal Library](https://docs.python.org/3/library/signal.html)
 
 * Bleak
     * [Documentation](https://bleak.readthedocs.io/en/latest/)

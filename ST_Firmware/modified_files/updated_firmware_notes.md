@@ -37,3 +37,7 @@ Additionally, the data was printed as bytearrays to the terminal for correlation
 * `ALLMEMS1_PRINTF("MAG_X = %d ; [%x] ", mag_x_to_send, mag_x_to_send);`
 * `ALLMEMS1_PRINTF("MAG_Y = %d ; [%x] ", mag_y_to_send, mag_y_to_send);`
 * `ALLMEMS1_PRINTF("MAG_Z = %d ; [%x]\n\r", mag_z_to_send, mag_z_to_send);`
+
+## Update Quaternion Rate
+
+The quaternion transfer rate was set to transfer 1 vector quaternion (the thee imaginary values unconstrained by unit length) every 10ms. This is done by modifying the ALL

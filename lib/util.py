@@ -11,7 +11,12 @@ def magnitude(*args):
 # Returns a tuple containing each normalized argument
 def normalize(*args):
     norm = magnitude(*args)
-    return tuple(arg / norm for arg in args)
+    try:
+        return tuple(arg / norm for arg in args)
+    except ZeroDivisionError:
+        print("Attempted to divide by 0 when normalizing. \
+            Waiting for next set of quaternions.")
+        return tuple(arg for arg in args)
 
 
 ####################
@@ -22,7 +27,7 @@ def normalize(*args):
 # The assumed value of the W (real) component is 0
 # as the information received from the ST is a vector quaternion.
 def vecQ_to_euler(i, j, k):
-    w = 0
+    w = 1
     # Normalize vector quaternion to set components in range for
     # inverse trigonometric function
     i, j, k = normalize(i, j, k)
@@ -31,7 +36,15 @@ def vecQ_to_euler(i, j, k):
 
 # Pitch is the rotations about the y axis (between -90 and 90 deg)
 def pitch(w, i, j, k):
-    return degrees(asin(2 * (w * j - i * k)))
+    value = 2 * (w * j - i * k)
+    # The following conditions prevent passing a value outside the arcsine
+    # input range, which is -1 to 1 inclusive.
+    if value > 1:
+        return degrees(asin(1))
+    elif value < -1:
+        return degrees(asin(-1))
+    else:
+        return degrees(asin(value))
 
 
 # Roll is the rotation about the x axis (between -180 and 180 deg)

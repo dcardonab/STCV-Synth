@@ -2,7 +2,6 @@ import numpy as np
 import os
 from pyo import *
 from sys import platform
-from typing import Union
 
 # Local files
 from constants import *
@@ -24,6 +23,7 @@ class Synth():
             self.oct_range
             self.scale          # tuple: (scale name, np.array structure)
             self.bpm
+            self.subdivision
             self.pulse_range
     """
 
@@ -179,23 +179,46 @@ class Synth():
     SETTINGS
     """
 
-    def set_bpm(self, bpm: float = DEF_BPM) -> None:
+    def init_bpm(self, bpm: float = DEF_BPM) -> None:
         """
-        Method sets the global BPM of the synthesizer, which is used
+        Method initializes the global BPM of the synthesizer, which is used
         in combination with the pulse rate for pulsing mode, as well
         as future implementation of time-domain audio effects.
         """
         self.bpm = 60 / bpm
         print(f"\n\tBPM: Quarter Note {bpm}")
 
-    def set_pulse_rate(self, sub_division: str = DEF_SUBDIVISION) -> None:
+    def init_pulse_rate(self, sub_division: str = DEF_SUBDIVISION) -> None:
         """
         The pulse rate is effectively the implemented subdivision of
         the synthesizer's BPM.
         """
-        self.pulse_rate = self.bpm / bpm_sub_divisions[sub_division]
-        print(f"\n\tSub-Division = {sub_division_options[sub_division]}")
+        self.sub_division = sub_division
+        self.pulse_rate = self.bpm / bpm_sub_divisions[self.sub_division]
+        print(f"\n\tSub-Division = {sub_division_options[self.sub_division]}")
         print(f"\tPulse rate = {self.pulse_rate:.2f} seconds")
+
+    def set_bpm(self, bpm: float) -> None:
+        """
+        Method sets the global BPM of the synthesizer, which is used
+        in combination with the pulse rate for pulsing mode, as well
+        as future implementation of time-domain audio effects.
+        """
+        self.bpm = bpm
+
+    def set_pulse_rate(self) -> None:
+        """
+        The pulse rate is effectively the implemented subdivision of
+        the synthesizer's BPM.
+        """
+        self.pulse_rate = self.bpm / bpm_sub_divisions[self.sub_division]
+
+    def set_subdivision(self, sub_division: str) -> None:
+        """
+        Method sets the sub-division that will be applied to the BPM when
+        setting the pulse rate of the synthesizer.
+        """
+        self.sub_division = sub_division
 
     def settings(self) -> None:
         """
@@ -214,8 +237,8 @@ class Synth():
             self.set_base()
             self.set_oct_range()
             self.set_scale()
-            self.set_bpm()
-            self.set_pulse_rate()
+            self.init_bpm()
+            self.init_pulse_rate()
 
         # Prompt for custom settings
         else:
@@ -246,9 +269,9 @@ class Synth():
             # Set clock
             bpm = int(input("\n\tChoose quarter note BPM: "))
             if isinstance(bpm, (int, float)) and bpm != 0:
-                self.set_bpm(abs(bpm))
+                self.init_bpm(abs(bpm))
             else:
-                self.set_bpm()
+                self.init_bpm()
 
             # Set subdivision for pulse rate
             print("\tAvailable sub-division options:")
@@ -257,9 +280,9 @@ class Synth():
             sub_div = input("\n\tSelect sub-division option (use index): ")
 
             if sub_div in bpm_sub_divisions.keys():
-                self.set_pulse_rate(sub_div)
+                self.init_pulse_rate(sub_div)
             else:
-                self.set_pulse_rate()
+                self.init_pulse_rate()
 
     """
     SERVER FUNCTIONS

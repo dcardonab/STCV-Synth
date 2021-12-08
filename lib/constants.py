@@ -89,4 +89,8 @@ base_mult_options = {
 }
 
 # SensorTile GATT Handles
-ST_handles = {"environment": 13, "motion": 16, "quaternions": 28}
+ST_handles = {
+    "environment": 13,
+    "motion": 16,
+    "quaternions": 28
+}

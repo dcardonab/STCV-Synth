@@ -7,8 +7,8 @@ class data_frame_logger:
     def __init__(self, file_path, max_record=10000) -> None:
         """
         file_path is the path to the log file
-        max_record is the maximum number of records that can accumulate before
-        they are automatically dumped to a file
+        max_record is the maximum number of records that can accumulate
+        before they are automatically dumped to a file
         """
         self.data_frame_logger = None
         self.file_path = file_path
@@ -32,12 +32,16 @@ class data_frame_logger:
     async def write_log(self):
         
         if self.data_frame_logger is None:
-            #If there are no records to write, the logger just returns
+            # If there are no records to write, the logger just returns
             return
         elif os.path.isfile(self.file_path):
-            self.data_frame_logger.to_csv(self.file_path, mode='a', header=False)
+            self.data_frame_logger.to_csv(
+                self.file_path, mode='a', header=False
+            )
         else: 
-            self.data_frame_logger.to_csv(self.file_path, mode='a', header=True)
+            self.data_frame_logger.to_csv(
+                self.file_path, mode='a', header=True
+            )
 
     def new_record(self, environment, motion, quaternions):
         """
@@ -51,13 +55,16 @@ class data_frame_logger:
         
         if environment and len(environment) == 2:
             # Grabbing the column headings from the tuples
-            environment_columns  = ['e_ticks'] + list(environment[1].keys())
+            environment_columns  = ['e_ticks'] + \
+                list(environment[1].keys())
             # Retrieving the column values from the environment tuple
-            environment_data = [environment[0]] + list(environment[1].values())
+            environment_data = [environment[0]] + \
+                list(environment[1].values())
 
         else:
             # Raise a value error if invalid data is passed into the function
-            raise ValueError("environment parameter is null or incorrect shape")
+            raise ValueError \
+                ("environment parameter is null or incorrect shape")
 
         if motion and len(motion) == 2:
             # Grabbing the column headings from the tuples
@@ -70,23 +77,28 @@ class data_frame_logger:
             raise ValueError("motion parameter is null or incorrect shape")
         
         if quaternions and len(quaternions) == 2:
-            # Since column headings need to be unique, hard coding ws required for i, j,k values
-            quaternions_columns = ['m_ticks'] + ['i0', 'j0', 'k0', 'roll',
-                                                'pitch', 'yaw', 'i1', 'j1', 'k1', 'roll',
-                                                'pitch', 'yaw', 'i2', 'j2', 'k2', 'roll',
-                                                'pitch', 'yaw']
+            # Since column headings need to be unique, hard coding was
+            # required for the three stored quaternions.
+            quaternions_columns = ['m_ticks'] + [
+                'i_0', 'j_0', 'k_0', 'roll_0', 'pitch_0', 'yaw_0',
+                'i_1', 'j_1', 'k_1', 'roll_1', 'pitch_1', 'yaw_1',
+                'i_2', 'j_2', 'k_2', 'roll_2', 'pitch_2', 'yaw_2'
+            ]
             # Retrieving the column values from the motion tuple
             #  lists can be concatenated through the addition sign
-            quaternions_data = [quaternions[0]] + list(quaternions[1][0].values()) \
-                            + list(quaternions[1][1].values()) \
-                            + list(quaternions[1][2].values())
+            quaternions_data = [quaternions[0]] + \
+                                list(quaternions[1][0].values()) + \
+                                list(quaternions[1][1].values()) + \
+                                list(quaternions[1][2].values())
 
         else:
             # Raise a value error if invalid data is passed into the function
-            raise ValueError("quaternions parameter is null or incorrect shape")
+            raise ValueError \
+                ("quaternions parameter is null or incorrect shape")        
 
         # lists can be concatenated through the addition sign
-        # concatenating all the columns to form a single values row in the data frame
+        # concatenating all the columns to form a single row
+        # in the data frame
         columns = environment_columns + motion_columns + quaternions_columns
     
         all_data = environment_data + motion_data + quaternions_data
@@ -102,3 +114,4 @@ class data_frame_logger:
         df = pd.DataFrame(record, index=[str(record_uuid)])
         
         return df
+        
