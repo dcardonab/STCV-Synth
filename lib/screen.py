@@ -33,7 +33,7 @@ class Screen:
 
         self.init_controls()
 
-    def init_controls(self, bpm):
+    def init_controls(self):
         """
         This function is a control initialization function. It is based on
         an old graphically design pattern.  Python prefers to have this all
@@ -76,7 +76,7 @@ class Screen:
             1000, 100, menu_dictionary=left_right_dict, btm_text_color=(255, 0, 255)
         )
         # The slider control is created here with all default values
-        self.bpm_slider = Slider(BPM=bpm)
+        self.bpm_slider = Slider()
 
     def setup_header_list(self, folder_path="lib/header"):
         """

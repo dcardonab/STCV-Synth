@@ -2,6 +2,7 @@ import numpy as np
 import os
 from pyo import *
 from sys import platform
+from typing import Union
 
 # Local files
 from constants import *
@@ -179,15 +180,6 @@ class Synth():
     SETTINGS
     """
 
-    def init_bpm(self, bpm: float = DEF_BPM) -> None:
-        """
-        Method initializes the global BPM of the synthesizer, which is used
-        in combination with the pulse rate for pulsing mode, as well
-        as future implementation of time-domain audio effects.
-        """
-        self.bpm = 60 / bpm
-        print(f"\n\tBPM: Quarter Note {bpm}")
-
     def init_pulse_rate(self, sub_division: str = DEF_SUBDIVISION) -> None:
         """
         The pulse rate is effectively the implemented subdivision of
@@ -198,13 +190,13 @@ class Synth():
         print(f"\n\tSub-Division = {sub_division_options[self.sub_division]}")
         print(f"\tPulse rate = {self.pulse_rate:.2f} seconds")
 
-    def set_bpm(self, bpm: float) -> None:
+    def set_bpm(self, bpm: Union[int, float] = DEF_BPM) -> None:
         """
         Method sets the global BPM of the synthesizer, which is used
         in combination with the pulse rate for pulsing mode, as well
         as future implementation of time-domain audio effects.
         """
-        self.bpm = bpm
+        self.bpm = 60 / bpm
 
     def set_pulse_rate(self) -> None:
         """
@@ -237,7 +229,8 @@ class Synth():
             self.set_base()
             self.set_oct_range()
             self.set_scale()
-            self.init_bpm()
+            self.set_bpm()
+            print(f"\n\tBPM: Quarter Note {self.bpm}")
             self.init_pulse_rate()
 
         # Prompt for custom settings
@@ -269,9 +262,11 @@ class Synth():
             # Set clock
             bpm = int(input("\n\tChoose quarter note BPM: "))
             if isinstance(bpm, (int, float)) and bpm != 0:
-                self.init_bpm(abs(bpm))
+                self.set_bpm(abs(bpm))
             else:
-                self.init_bpm()
+                self.set_bpm()
+
+            print(f"\n\tBPM: Quarter Note {self.bpm}")
 
             # Set subdivision for pulse rate
             print("\tAvailable sub-division options:")
@@ -292,7 +287,7 @@ class Synth():
         """
         Stops the audio server.
         """
-        print("\tShutting down the audio server.\n")
+        print("\n\tShutting down the audio server.\n")
         # Stop the server
         self.server.stop()
 

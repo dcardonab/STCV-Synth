@@ -93,6 +93,8 @@ async def main():
     PERFORMANCE
     """
     print("\n\n\t##### Starting performance #####\n")
+    # The running method of a keyboard listener returns a boolean depending
+    # on whether the listener is running or not.
     while True:
         # Get and log ST data
         if ST_address:
@@ -176,15 +178,14 @@ async def main():
         synth.play()
         await asyncio.sleep(synth.pulse_rate)
 
-        # Check if keyboard interrupt has been engaged.
-        # If so, the loop will break and the Shutdown routine will engage.
         if keyboard_interrupt_event.is_set():
-            print("\n\n\t##### STCV-Synth was stopped #####\n")
             break
 
     """
     SHUTDOWN ROUTINE
     """
+    print("\n\t##### Shutdown Initialized #####")
+
     # Stop Synth
     synth.server.recstop()
     synth.stop_server()

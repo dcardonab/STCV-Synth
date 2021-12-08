@@ -42,6 +42,7 @@ On the STCV-Synth root folder, run: `python main.py`
 
 * Pyo
     * [Documentation](http://ajaxsoundstudio.com/pyodoc/)
+    * [GitHub](https://github.com/belangeo/pyo)
 
 * Quaternions
     * [3-DOF Orientation Tracking - Stanford](https://stanford.edu/class/ee267/notes/ee267_notes_imu.pdf)

@@ -1,6 +1,8 @@
 from math import asin, atan2, degrees, sqrt
 
-
+"""
+MATH FUNCTIONS
+"""
 # Magnitude is the square root of the sum of the powers of the list items
 # *args allows declaring a variable number of arguments.
 def magnitude(*args):
@@ -19,10 +21,9 @@ def normalize(*args):
         return tuple(arg for arg in args)
 
 
-####################
-### EULER ANGLES ###
-####################
-
+"""
+EULER ANGLES
+"""
 # Calculate the Euler Angles from a vector quaternion.
 # In a relative quaternion, the initial value of the W (real) component
 # is 1. The information received from the ST is a vector quaternion.
