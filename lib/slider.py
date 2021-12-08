@@ -25,9 +25,6 @@ class Slider:
         self.min_value = min_value
         self.max_value = max_value
 
-    def get_bpm(self):
-        return self.BPM
-
     def set_bpm(self, bpm):
         if bpm is None:
             return bpm
