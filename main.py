@@ -125,26 +125,6 @@ async def main():
                     img, hand_number=handNumber, draw=True
                 )
                 img = screen.event_processing(img, lmList)
-            
-            # # Draws the controls
-            # img = screen.scales_menu.draw(img)
-            # img = screen.pulse_sustain_menu.draw(img)
-            # img = screen.left_right_menu.draw(img)
-
-            # header = screen.overlayList[screen.header_index]
-            # if screen.header_index == 1:
-            #     #  Displays the run control menu
-            #     screen.draw_run_controls(img)
-
-            #     screen.pulse_sustain_menu.set_visible(False)
-            #     screen.scales_menu.set_visible(False)
-            #     screen.left_right_menu.set_visible(False)
-            # else:
-            #     # Settings controls run controls
-            #     screen.pulse_sustain_menu.set_visible(True)
-            #     screen.scales_menu.set_visible(True)
-            #     screen.left_right_menu.set_visible(True)
-            #     screen.hide_run_controls()
 
             header = screen.overlayList[screen.header_index]
             # Determine what controllers to display in the GUI.
@@ -169,8 +149,9 @@ async def main():
                 screen.switch_delay = 0
         
             # Update Synth parameters based on CV controllers
-            synth.set_bpm(screen.bpm_slider.get_bpm())
-            synth.set_pulse_rate()
+            if synth.bpm != 60 / screen.bpm_slider.BPM:
+                synth.set_bpm(screen.bpm_slider.BPM)
+                synth.set_pulse_rate()
 
         # Update synth values
         scale_step = random.choice(synth.scale[1])

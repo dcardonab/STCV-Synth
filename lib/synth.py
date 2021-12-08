@@ -89,15 +89,12 @@ class Synth():
         self.cur_base = base_mult_options[mult]
         self.cur_tonal_center = tonal_cntr
         self.base_hz = tonal_center_options[tonal_cntr] * self.cur_base[0]
-        print(f"\n\tBase frequency: {self.base_hz}Hz")
 
     def set_freq(self, scale_step: int) -> None:
         """
         Set frequency by converting a given scale step to frenquency.
         """
-        f = float(self.base_hz * 2 ** (scale_step / 12))
-        print(f"\tOscillator Frequency: {f:.2f}")
-        self.osc.freq = f
+        self.osc.freq = float(self.base_hz * 2 ** (scale_step / 12))
 
     def set_oct_range(self, oct_range: int = DEF_NUM_OCTAVES) -> None:
         """
@@ -121,6 +118,119 @@ class Synth():
             return
 
         self.oct_range = oct_range
+
+    def set_scale(self, scale: str = DEF_SCALE) -> None:
+        """
+        Sets the scale that will be used for mapping the input data.
+        Setting the scale implies storing the name of the currently selected
+        scale, as well as the twelve-tone system structure of the scale. This
+        representation takes into account the octave range of the scale.
+        """
+        # Tuple with the name of the currently selected scale, and the
+        # structure of the scale as a np.array matching the scale structure,
+        # with extended number of steps to match the number of octaves.
+        self.scale = (scale, np.hstack(
+            [np.hstack(scales[scale]) + i * 12 for i in range(self.oct_range)]
+        ))
+
+    def set_bpm(self, bpm: Union[int, float] = DEF_BPM) -> None:
+        """
+        Method sets the global BPM of the synthesizer, which is used
+        in combination with the pulse rate for pulsing mode, as well
+        as future implementation of time-domain audio effects.
+        """
+        self.bpm = 60 / bpm
+
+    def set_subdivision(self, sub_division: str = DEF_SUBDIVISION) -> None:
+        """
+        Method sets the sub-division that will be applied to the BPM when
+        setting the pulse rate of the synthesizer.
+        """
+        self.sub_division = sub_division
+
+    def set_pulse_rate(self) -> None:
+        """
+        The pulse rate is effectively the implemented subdivision of
+        the synthesizer's BPM.
+        """
+        self.pulse_rate = self.bpm / bpm_sub_divisions[self.sub_division]
+
+    """
+    SELECT SETTINGS
+    """
+
+    def settings(self) -> None:
+        """
+        Sets the synthesizer settings upon launching the program.
+        It can either follow a default init routine, or a custom one
+        that allows the user to specify their settings of choice.
+        """
+        # Check if the user would like to use default settings.
+        x = input("""
+        Would you like to use the synthesizer's defaults?
+        (Any other input will implement defaults).
+        y/n: """)
+
+        # Set default settings
+        if x.lower() != "n":
+            self.set_base()
+            self.set_oct_range()
+            self.set_scale()
+            self.set_bpm()
+            self.set_subdivision()
+            self.set_pulse_rate()
+            self.print_properties()
+
+        # Prompt for custom settings
+        else:
+            # Set the synthesizer frequency base (i.e., tonal center)
+            print("\n\tSelect tonal center (use letters)")
+            [print(f"\t\t{k}:\t{v}") for k, v in tonal_center_options.items()]
+            print(f"\tUnavailable inputs default to {DEF_TONAL_CENTER}.")
+            tonal_center = input("\n\tTonal Center: ").capitalize()
+            if tonal_center not in tonal_center_options:
+                tonal_center = DEF_TONAL_CENTER
+
+            # Set the base multiplier
+            print("\n\tSelect base multiplier (select numeric option):")
+            [
+                print(f"\t\t{k}: Multiplier:\t{v[0]}\tMax 8ve range:\t{v[1]}") 
+                for k, v in base_mult_options.items()
+            ]
+            print(f"\tUnavailable inputs default to option \
+                {DEF_BASE_MULTIPLIER}")
+            base_mult = input("\n\tBase Multiplier: ")
+            if base_mult not in base_mult_options:
+                base_mult = DEF_BASE_MULTIPLIER
+
+            self.set_base(tonal_center, base_mult)
+
+            # Set octave range and scale
+            self.sel_oct_range_and_scale()
+
+            # Set clock
+            bpm = int(input("\n\tChoose quarter note BPM: "))
+            if isinstance(bpm, (int, float)) and bpm != 0:
+                self.set_bpm(abs(bpm))
+            else:
+                self.set_bpm()
+
+            # Set subdivision for pulse rate
+            print("\tAvailable sub-division options:")
+            [print(f"\t\t{k}: {v}") for k, v in sub_division_options.items()]
+            print(f"\tUnavailable inputs default to \
+                {sub_division_options[DEF_SUBDIVISION]}.")
+
+            sub_div = input("\n\tSelect sub-division option (use index): ")
+            if sub_div in bpm_sub_divisions.keys():
+                self.set_subdivision(sub_div)
+            else:
+                self.set_subdivision()
+
+            self.set_pulse_rate()
+
+            # Display all synth properties to the user.
+            self.print_properties()
 
     def sel_oct_range_and_scale(self) -> None:
         """
@@ -159,130 +269,21 @@ class Synth():
         # Set chosen values.
         self.set_oct_range(oct_range)
         self.set_scale(scale)
+        
 
-    def set_scale(self, scale: str = DEF_SCALE) -> None:
-        """
-        Sets the scale that will be used for mapping the input data.
-        Setting the scale implies storing the name of the currently selected
-        scale, as well as the twelve-tone system structure of the scale. This
-        representation takes into account the octave range of the scale.
-        """
-        # Tuple with the name of the currently selected scale, and the
-        # structure of the scale as a np.array matching the scale structure,
-        # with extended number of steps to match the number of octaves.
-        self.scale = (scale, np.hstack(
-            [np.hstack(scales[scale]) + i * 12 for i in range(self.oct_range)]
-        ))
+    def print_properties(self) -> None:
+        print(f"\n\tTonal Center: {self.cur_tonal_center}")
+        print(f"\tBase Fequency: {self.base_hz}Hz")
         print(f"\n\tCurrent Scale: {self.scale[0].capitalize()}")
-        print(f"\tScale structure: {self.scale[1]}")
-
-    """
-    SETTINGS
-    """
-
-    def init_pulse_rate(self, sub_division: str = DEF_SUBDIVISION) -> None:
-        """
-        The pulse rate is effectively the implemented subdivision of
-        the synthesizer's BPM.
-        """
-        self.sub_division = sub_division
-        self.pulse_rate = self.bpm / bpm_sub_divisions[self.sub_division]
-        print(f"\n\tSub-Division = {sub_division_options[self.sub_division]}")
+        print(f"\tOctave Range: {self.oct_range}")
+        print(f"\tScale Structure: {self.scale[1]}")
+        print(f"\n\tBPM = Quarter Note {60 / self.bpm}")
+        print(f"\tSub-Division = {sub_division_options[self.sub_division]}")
         print(f"\tPulse rate = {self.pulse_rate:.2f} seconds")
-
-    def set_bpm(self, bpm: Union[int, float] = DEF_BPM) -> None:
-        """
-        Method sets the global BPM of the synthesizer, which is used
-        in combination with the pulse rate for pulsing mode, as well
-        as future implementation of time-domain audio effects.
-        """
-        self.bpm = 60 / bpm
-
-    def set_pulse_rate(self) -> None:
-        """
-        The pulse rate is effectively the implemented subdivision of
-        the synthesizer's BPM.
-        """
-        self.pulse_rate = self.bpm / bpm_sub_divisions[self.sub_division]
-
-    def set_subdivision(self, sub_division: str) -> None:
-        """
-        Method sets the sub-division that will be applied to the BPM when
-        setting the pulse rate of the synthesizer.
-        """
-        self.sub_division = sub_division
-
-    def settings(self) -> None:
-        """
-        Sets the synthesizer settings upon launching the program.
-        It can either follow a default init routine, or a custom one
-        that allows the user to specify their settings of choice.
-        """
-        # Check if the user would like to use default settings.
-        x = input("""
-        Would you like to use the synthesizer's defaults?
-        (Any other input will implement defaults).
-        y/n: """)
-
-        # Set default settings
-        if x.lower() != "n":
-            self.set_base()
-            self.set_oct_range()
-            self.set_scale()
-            self.set_bpm()
-            print(f"\n\tBPM: Quarter Note {self.bpm}")
-            self.init_pulse_rate()
-
-        # Prompt for custom settings
-        else:
-            # Set the synthesizer frequency base (i.e., tonal center)
-            print("\n\tSelect tonal center (use letters)")
-            [print(f"\t\t{k}:\t{v}") for k, v in tonal_center_options.items()]
-            print(f"\tUnavailable inputs default to {DEF_TONAL_CENTER}.")
-            tonal_center = input("\n\tTonal Center: ").capitalize()
-            if tonal_center not in tonal_center_options:
-                tonal_center = DEF_TONAL_CENTER
-
-            # Set the base multiplier
-            print("\n\tSelect base multiplier (select numeric option):")
-            [
-                print(f"\t\t{k}: Multiplier:\t{v[0]}\tMax 8ve range:\t{v[1]}") 
-                for k, v in base_mult_options.items()
-            ]
-            print(f"\tUnavailable inputs default to option {DEF_BASE_MULTIPLIER}")
-            base_mult = input("\n\tBase Multiplier: ")
-            if base_mult not in base_mult_options:
-                base_mult = DEF_BASE_MULTIPLIER
-
-            self.set_base(tonal_center, base_mult)
-
-            # Set octave range and scale
-            self.sel_oct_range_and_scale()
-
-            # Set clock
-            bpm = int(input("\n\tChoose quarter note BPM: "))
-            if isinstance(bpm, (int, float)) and bpm != 0:
-                self.set_bpm(abs(bpm))
-            else:
-                self.set_bpm()
-
-            print(f"\n\tBPM: Quarter Note {self.bpm}")
-
-            # Set subdivision for pulse rate
-            print("\tAvailable sub-division options:")
-            [print(f"\t\t{k}: {v}") for k, v in sub_division_options.items()]
-            print(f"\tUnavailable inputs default to {sub_division_options[DEF_SUBDIVISION]}.")
-            sub_div = input("\n\tSelect sub-division option (use index): ")
-
-            if sub_div in bpm_sub_divisions.keys():
-                self.init_pulse_rate(sub_div)
-            else:
-                self.init_pulse_rate()
 
     """
     SERVER FUNCTIONS
     """
-
     def stop_server(self) -> None:
         """
         Stops the audio server.
@@ -316,7 +317,6 @@ class Synth():
     """
     RENDER
     """
-
     def get_render_path(self) -> str:
         """
         Create a render path that prevents previous files from being
