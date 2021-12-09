@@ -67,7 +67,7 @@ class PlusMinusButtons:
             # The order of drawing sets the display order
             cv2.putText(
                 img,
-                "+",
+                "-",
                 ((self.x1 + 12), (self.y1 + 35)),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 1,
@@ -87,7 +87,7 @@ class PlusMinusButtons:
             # The following places the minus text on one of the buttons. 
             cv2.putText(
                 img,
-                "-",
+                "+",
                 ((self.x1 + 112), (self.y1 + 35)),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 1,
@@ -120,28 +120,29 @@ class PlusMinusButtons:
             )
         return img
 
-    def plus_btn_click(self, x, y):
+    def minus_btn_click(self, x, y):
         # processes the events for the plus botton click
+        # A button click is simply looking for a finger 
+        # landmark intersection
+        if self.visible:
+            if self.min_value < self.current_value:
+            
+                point = Point(x, y)
+                bounding_box = create_rectangle_array(
+                    (self.x1, self.y1), (self.x2, self.y2)
+                )
+                if point_intersects(point, bounding_box):
+                    self.current_value -= 1
+
+    def plus_btn_click(self, x, y):
+        # processes the events for the minus botton click
         # A button click is simply looking for a finger 
         # landmark intersection
         if self.visible:
             if self.max_value > self.current_value:
                 point = Point(x, y)
                 bounding_box = create_rectangle_array(
-                    (self.x1, self.y1), (self.x2, self.y2)
-                )
-                if point_intersects(point, bounding_box):
-                    self.current_value += 1
-
-    def minus_btn_click(self, x, y):
-        # processes the events for the minus botton click
-        # A button click is simply looking for a finger 
-        # landmark intersection
-        if self.visible:
-            if self.min_value < self.current_value:
-                point = Point(x, y)
-                bounding_box = create_rectangle_array(
                     (self.x1 + 100, self.y1), ((self.x2 + 100), self.y2)
                 )
                 if point_intersects(point, bounding_box):
-                    self.current_value -= 1
+                    self.current_value += 1
