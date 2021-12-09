@@ -10,8 +10,16 @@ DEF_TONAL_CENTER = 'A'
 ST_FIRMWARE_NAME = 'AM1V310'
 
 # Accelerometer magnitude range
+# Since the accelerometer of the ST is calibrated to a maximum
+# value of 2G per axis, the approximate maximum magnitude will
+# be 3464 G. The minimum magnitude value will approximately be
+# 1030 G, according to tests that kept the ST stationary.
 MIN_ACC_MAGNITUDE = 1030
 MAX_ACC_MAGNITUDE = 3464
+MIN_TILT = 0
+MAX_TILT = 180
+MIN_AZIMUTH = -180
+MAX_AZIUMTH = 180
 
 # Tempered Scales
 scales = {

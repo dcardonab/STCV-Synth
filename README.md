@@ -53,6 +53,8 @@ On the STCV-Synth root folder, run: `python main.py`
 * Pyo
     * [Documentation](http://ajaxsoundstudio.com/pyodoc/)
     * [GitHub](https://github.com/belangeo/pyo)
+    * [Map Function](http://ajaxsoundstudio.com/pyodoc/api/classes/map.html)
+    * [Tips for Improving Real-Time Performance](http://ajaxsoundstudio.com/pyodoc/perftips.html)
 
 * General
     * [Scale one range to another](https://stackoverflow.com/questions/4154969/how-to-map-numbers-in-range-099-to-range-1-01-0/33127793)

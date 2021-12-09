@@ -56,6 +56,13 @@ class Synth():
         # Start audio processing in the server.
         self.server.start()
 
+        self.set_properties()
+
+        # Maps inputs between 0 and 1 to a range of 20Hz to 20kHz using
+        # a logarithmic scale.
+        # REF: http://ajaxsoundstudio.com/pyodoc/api/classes/map.html
+        self.filt_map = Map(200.0, 20000.0, 'log')
+
         # Create an envelope generator.
         self.amp_env = Adsr(attack=0.01,
                             decay=0.2,
@@ -65,9 +72,31 @@ class Synth():
                             mul=0.5)
 
         # Initialize oscillator.
-        self.osc = Sine(mul=self.amp_env).out()
+        # Using a Sig object for defining the frequency is a faster
+        # implementation. This is because simple arithmetic operations
+        # involving audio objects will create a 'Dummy' object to hold the
+        # modified signal, which will allocate memory for the audio stream
+        # and add a processing task onto the CPU.
+        self.freq_root = Sig(value=1000)
+        self.osc_root = SuperSaw(freq=self.freq_root, mul=self.amp_env)
 
-        self.settings()
+        # The filter will take in the oscillator at the input, and its
+        # frequency will depend upon movement in the ST tilt.
+        # MoogLP filter is a 4th orden Low-Pass Filter i.e., 24dB per octave.
+        self.filt = MoogLP(self.osc_root)
+
+        self.delay = Delay(self.filt, self.bpm / 16, 0.8)
+
+        # Initialize mixer and add channels to the mixer.
+        self.mixer = Mixer(outs=1, chnls=2)
+        self.mixer.addInput(voice=0, input=self.filt)
+        self.mixer.addInput(voice=1, input=self.delay)
+        self.mixer.setAmp(vin=0, vout=0, amp=0.5)
+        self.mixer.setAmp(vin=1, vout=0, amp=0.5)
+
+        # Initialize reverb to enhance the audio signal. The balance will be
+        # controlled by the Azimuth angle from the ST.
+        self.reverb = Freeverb(self.mixer[0], size=0.8, damp=0.8, bal=0.5).out()
 
     def play(self) -> None:
         """
@@ -92,11 +121,12 @@ class Synth():
         self.cur_tonal_center = tonal_cntr
         self.base_hz = tonal_center_options[tonal_cntr] * self.cur_base[0]
 
-    def set_freq(self, scale_step: int) -> None:
+    def set_osc_freq(self, scale_step: int) -> None:
         """
-        Set frequency by converting a given scale step to frenquency.
+        Set oscillator frequency by converting a given scale step to
+        frenquency.
         """
-        self.osc.freq = float(self.base_hz * 2 ** (scale_step / 12))
+        self.freq_root.value = float(self.base_hz * 2 ** (scale_step / 12))
 
     def set_oct_range(self, oct_range: int = DEF_NUM_OCTAVES) -> None:
         """
@@ -161,7 +191,7 @@ class Synth():
     SELECT SETTINGS
     """
 
-    def settings(self) -> None:
+    def set_properties(self) -> None:
         """
         Sets the synthesizer settings upon launching the program.
         It can either follow a default init routine, or a custom one

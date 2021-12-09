@@ -1,10 +1,12 @@
 from struct import unpack_from
+from sys import platform
 from typing import Union
 
 from bleak import BleakClient, BleakError, BleakScanner
 
 from constants import ST_handles
 from droppingLifoQueue import droppingLifoQueue
+from lib.constants import ST_FIRMWARE_NAME
 from util import *
 
 
@@ -95,16 +97,18 @@ class SensorTile():
         # Store incoming data in a dictionary
         environment_data = {}
 
-        time_stamp = unpack_from("<h", data[:2])[0]
+        result = unpack_from('<hhhhh', data)
+
+        time_stamp = result[0]
 
         # Pressure is represented by 4 bytes
-        environment_data['pressure'] = unpack_from("<h", data[2:6])[0]
+        environment_data['pressure'] = result[1]
 
-        environment_data['humidity'] = unpack_from("<h", data[6:8])[0]
+        environment_data['humidity'] = result[2]
 
         # The order of the temp sensors is swapped in the ST GATT transfer.
-        environment_data['temp2'] = unpack_from("<h", data[8:10])[0]
-        environment_data['temp1'] = unpack_from("<h", data[10:])[0]
+        environment_data['temp1'] = result[4]
+        environment_data['temp2'] = result[3]
         
         # Add data to Queue
         self.environment_data.put_nowait((time_stamp, environment_data))
@@ -121,43 +125,41 @@ class SensorTile():
         # Store incoming data in a dictionary
         motion_data = {}
 
-        time_stamp = unpack_from("<h", data[:2])[0]
+        result = unpack_from('<hhhhhhhhhh', data)
+
+        time_stamp = result[0]
 
         # Acceleration
-        motion_data['acc_x'] = unpack_from("<h", data[2:4])[0]
-        motion_data['acc_y'] = unpack_from("<h", data[4:6])[0]
-        motion_data['acc_z'] = unpack_from("<h", data[6:8])[0] 
+        motion_data['acc_x'] = result[1]
+        motion_data['acc_y'] = result[2]
+        motion_data['acc_z'] = result[3]
 
         # Gyroscope
         # Data is multiplied by 100 to compensate for the division
         # applied in the firmware. This division is so that the
         # gyroscope data fits in two bytes of data.
-        motion_data['gyr_x'] = unpack_from("<h", data[8:10])[0] * 100
-        motion_data['gyr_y'] = unpack_from("<h", data[10:12])[0] * 100
-        motion_data['gyr_z'] = unpack_from("<h", data[12:14])[0] * 100
+        motion_data['gyr_x'] = result[4] * 100
+        motion_data['gyr_y'] = result[5] * 100
+        motion_data['gyr_z'] = result[6] * 100
 
         # Magnetometer
         # Incoming magnetometer data has the magnetometer offset
         # subtracted from it prior to being sent.
-        motion_data['mag_x'] = unpack_from("<h", data[14:16])[0]
-        motion_data['mag_y'] = unpack_from("<h", data[16:18])[0]
-        motion_data['mag_z'] = unpack_from("<h", data[18:])[0]
+        motion_data['mag_x'] = result[7]
+        motion_data['mag_y'] = result[8]
+        motion_data['mag_z'] = result[9]
 
         # Calculate Orientation, where:
         # * 'r' is radial distance (i.e., distance to origin), or magnitude
         # * 'theta' is polar angle (i.e., angle with respect to polar axis)
         # * 'phi' is azimuth angle (i.e., angle of rotation from initial
         #   meridian plane)
+        # Arguments passed as *args will process in the C layer of Python,
+        # which will run faster than passing dict or list values.
         motion_data['r'], motion_data['theta'], motion_data['phi'] = \
-            orientation_from_acceleration(
-                motion_data['acc_x'],
-                motion_data['acc_y'],
-                motion_data['acc_z']
-        )
+            orientation_from_acceleration(*result[1:4])
 
-        # print(f"r: {motion_data['r']}\
-        #     \ttheta: {motion_data['theta']}\
-        #     \tphi: {motion_data['phi']}", end='\r', flush=True)
+        # print(f"r: {motion_data['r']} theta: {motion_data['theta']} phi: {motion_data['phi']}", end='\r', flush=True)
         
         # Add data to Queue
         self.motion_data.put_nowait((time_stamp, motion_data))
@@ -175,23 +177,22 @@ class SensorTile():
         # Initialize multiple dictionaries using a range for loop.
         quat_data = {}
 
+        result = unpack_from('<hhhh', data)
+
         # Retrieve time stamp
-        time_stamp = unpack_from("<h", data[:2])[0]
+        time_stamp = result[0]
 
         # Retrieve First Quaternion
-        quat_data['i'] = unpack_from("<h", data[2:4])[0]
-        quat_data['j'] = unpack_from("<h", data[4:6])[0]
-        quat_data['k'] = unpack_from("<h", data[6:])[0]
+        quat_data['i'] = result[1]
+        quat_data['j'] = result[2]
+        quat_data['k'] = result[3]
 
         # Calculate Euler angles for first quaternion.
         # Euler angles are rounded to 2 decimal places in 'util.py'.
         quat_data['roll'], quat_data['pitch'], quat_data['yaw'] = \
-            vecQ_to_euler(quat_data['i'], quat_data['j'], quat_data['k'])
+            vecQ_to_euler(*result[1:])
         
-        # Add data to Queue. Note that the quaternion dictionaries are passed
-        # as a single list. Since this list is contained in a tuple, the
-        # syntax to retrieve quaternion data is: quaternion[1][0]['roll']
-
+        # Add data to Queue.
         self.quaternions_data.put_nowait((time_stamp, quat_data))
 
 
@@ -231,14 +232,19 @@ async def scan_ST_address(firmware_name: str) -> str:
     """
     try:
         # Scan BLE devices
-        devices = await BleakScanner.discover()
-        print(f"\n\tFound {str(len(devices))} devices.")
+        device = await BleakScanner.find_device_by_filter(
+            lambda device, _: device.name == ST_FIRMWARE_NAME,
+            timeout=10.0
+        )
+        # print(f"\n\tFound {str(len(devices))} devices.")
         # Find SensorTile
-        for d in devices:
-            if firmware_name in d.name:
-                print("\n\tFound SensorTile with AM1V310 firmware.")
-                print(f"\tName: {d.name}\tAddress: {d.address}")
-                return d.address
+        if device:
+            print(f"\n\tFound SensorTile with {ST_FIRMWARE_NAME} firmware.")
+            if platform == 'darwin':
+                print(f"\tUUID Address: {device.address}")
+            else:
+                print(f"\tMAC Address: {device.address}")
+            return device.address
 
     except BleakError:
         print("\n\tPlease turn on your system's bluetooth device.\n")

@@ -1,5 +1,5 @@
 import asyncio
-import random
+import numpy as np
 import signal
 import sys
 import time 
@@ -37,7 +37,7 @@ async def main():
     """
     INIT SYNTHESIZER ENGINE
     """
-    print("\n\n\t##### Initializing Synthesizer #####\n")
+    print("\n\n##### Initializing Synthesizer #####\n")
     # The server is initialized at a 48kHz sample rate.
     synth = Synth(48000)
     # 'sampletype' of 1 sets the bit depth to 24-bit int for audio recordings.
@@ -47,7 +47,7 @@ async def main():
     INIT CONTROLLERS
     """
     # Init SensorTile
-    print("\n\n\t##### Initializing Controllers #####\n")
+    print("\n\n##### Initializing Controllers #####\n")
 
     x = input("\tWould you like the SensorTile controller? (y/n) ")
     if x.lower() == "y":
@@ -67,7 +67,7 @@ async def main():
     # Init Computer Vision
     x = input("\n\n\tWould you like the computer vision controller? (y/n) ")
     if x.lower() == "y":
-        print("\n\t##### Initializing OpenCV #####\n")
+        print("\n\tInitializing OpenCV\n")
         screen = Screen()
         screen.bpm_slider.set_bpm(int(60 / synth.bpm))
         screen.plus_minus_subdivision.init_value(int(synth.sub_division))
@@ -104,7 +104,7 @@ async def main():
     """
     PERFORMANCE
     """
-    print("\n\n\t##### Starting performance #####\n")
+    print("\n\n##### Starting performance #####\n")
     # The running method of a keyboard listener returns a boolean depending
     # on whether the listener is running or not.
     while True:
@@ -124,16 +124,45 @@ async def main():
             # quaternions_dataframe = quaternions_dfl.new_record(quaternions)
             # await quaternions_dfl.add_record(quaternions_dataframe)
 
-            # The magnitude of acceleration will control amplitude.
-            # Since the accelerometer of the ST is calibrated to a maximum
-            # value of 2G per axis, the approximate maximum magnitude will
-            # be 3464 G. The minimum magnitude value will approximately be
-            # 1030 G, according to tests that kept the ST stationary.
-            synth.amp_env.mul = scale(
+            # The magnitude of acceleration will control various parameters
+            # of the envelope generator, including attack, amplitude
+            # multiplier, and duration.
+            synth.amp_env.setAttack(scale(
                 motion[1]['r'],
                 (MIN_ACC_MAGNITUDE, MAX_ACC_MAGNITUDE),
-                (0.25, 0.9)
-            )
+                (synth.pulse_rate * 0.9, 0.01)
+            ))
+
+            synth.amp_env.setMul(scale(
+                motion[1]['r'],
+                (MIN_ACC_MAGNITUDE, MAX_ACC_MAGNITUDE),
+                (0.25, 0.707)
+            ))
+
+            synth.amp_env.setDur(scale(
+                motion[1]['r'],
+                (MIN_ACC_MAGNITUDE, MAX_ACC_MAGNITUDE),
+                (synth.pulse_rate * 0.9, 0.1)
+            ))
+
+            # Set the amplitude of the delay effect in the mixer
+            synth.mixer.setAmp(1, 0, scale(
+                motion[1]['r'],
+                (MIN_ACC_MAGNITUDE, MAX_ACC_MAGNITUDE),
+                (0.1, 0.5)
+            ))
+
+            synth.filt.setFreq(synth.filt_map.get(scale(
+                motion[1]['theta'],
+                (MIN_TILT, MAX_TILT),
+                (0, 1)
+            )))
+
+            synth.reverb.setBal(scale(
+                motion[1]['phi'],
+                (MIN_AZIMUTH, MAX_AZIUMTH),
+                (0, 0.707)
+            ))
 
         # Read image from the camera for processing and displaying it.
         # This includes all visual GUI controls.
@@ -185,9 +214,11 @@ async def main():
                 )
                 synth.set_pulse_rate()
 
-        # Update synth values
-        scale_step = random.choice(synth.scale[1])
-        synth.set_freq(scale_step)
+        # Update synth values. Numpy random module is used as opposed
+        # to Python's 'random' library, since Numpy will compute random
+        # numbers at a C level, improving speed.
+        scale_step = np.random.choice(synth.scale[1])
+        synth.set_osc_freq(scale_step)
         synth.play()
         time.sleep(synth.pulse_rate)
 
@@ -197,7 +228,7 @@ async def main():
     """
     SHUTDOWN ROUTINE
     """
-    print("\n\n\t##### Shutdown Initialized #####")
+    print("\n\n##### Shutdown Initialized #####")
 
     # Stop Synth
     synth.server.recstop()
@@ -218,6 +249,8 @@ async def main():
 
         # Disconnect from ST.
         await sensor_tile.BLE_disconnect()
+
+    print("\n##### Performance Complete #####\n\n")
         
 
 if __name__ == "__main__":
