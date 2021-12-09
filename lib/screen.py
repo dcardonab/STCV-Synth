@@ -24,10 +24,8 @@ class Screen:
         self.detector = HandDetector(min_detection_confidence=0.50)
         self.switch_delay = 0
         
-        # self.BPM = 100
         self.octave_range = 1
         self.octave_base = 1
-        self.subdivision = 1
         self.pulse_sustain_index = 3
         self.left_right_index = 4
 

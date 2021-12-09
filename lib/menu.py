@@ -32,14 +32,13 @@ class Menu:
     def get_selected_menu_item(self):
         return self.selected_menu_item
 
-    def set_visible(self, visible=True):
+    def set_visible(self, visible: bool = True) -> bool:
         # Sets the controls to make visible or not
         self.visible = visible
 
-    def get_visible(self):
+    def get_visible(self) -> bool:
         """
         Returns whether the control will be rendered or not
-        :return: boolean
         """
         return self.visible
 
@@ -81,7 +80,6 @@ class Menu:
         cv2.rectangle(
             overlay_img, (x, y + 5), (x + 240, y - 50), self.btm_text_color, 1
         )
-
 
         return overlay_img
 

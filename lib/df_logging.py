@@ -2,6 +2,7 @@ import uuid
 import pandas as pd
 import numpy as np
 import os
+from typing import Tuple
 
 class data_frame_logger:
     def __init__(self, file_path, max_record=10000) -> None:
@@ -43,58 +44,22 @@ class data_frame_logger:
                 self.file_path, mode='a', header=True
             )
 
-    def new_record(self, environment, motion, quaternions):
+    def new_record(self, data: Tuple[int, dict]) -> pd.DataFrame:
         """
-        This method creates a pandas dataframe.  The pandas dataframe
-        can be added as a record(s) to an existing dataframe
-        :param environment: 
-        :param motion: 
-        :param quaternions: 
-        :return: pandas data frame 
+        This method creates a pandas dataframe. The pandas dataframe
+        can be added as a record(s) to an existing dataframe.
         """
         
-        if environment and len(environment) == 2:
+        if data and len(data) == 2:
             # Grabbing the column headings from the tuples
             # lists can be concatenated through the addition sign
-            environment_columns  = ['e_ticks'] + \
-                list(environment[1].keys())
-            # Retrieving the column values from the environment tuple
-            environment_data = [environment[0]] + \
-                list(environment[1].values())
+            columns  = ['ticks'] + list(data[1].keys())
+            # Retrieving the column values from the data tuple
+            all_data = [data[0]] + list(data[1].values())
 
         else:
             # Raise a value error if invalid data is passed into the function
-            raise ValueError \
-                ("environment parameter is null or incorrect shape")
-
-        if motion and len(motion) == 2:
-            # Grabbing the column headings from the tuples
-            motion_columns = ['m_ticks'] + list(motion[1].keys())
-            # Retrieving the column values from the motion tuple
-            motion_data = [motion[0]] + list(motion[1].values())
-
-        else:
-            # Raise a value error if invalid data is passed into the function
-            raise ValueError("motion parameter is null or incorrect shape")
-        
-        if quaternions and len(quaternions) == 2:
-            # Grabbing the column headings from the tuples
-            quaternions_columns = ['q_ticks'] + list(quaternions[1].keys())
-            # Retrieving the column values from the quaternion tuple
-            quaternions_data = [quaternions[0]] + \
-                               list(quaternions[1].values())
-
-        else:
-            # Raise a value error if invalid data is passed into the function
-            raise ValueError \
-                ("quaternions parameter is null or incorrect shape")        
-
-        # lists can be concatenated through the addition sign
-        # concatenating all the columns to form a single row
-        # in the data frame
-        columns = environment_columns + motion_columns + quaternions_columns
-    
-        all_data = environment_data + motion_data + quaternions_data
+            raise ValueError ("Data is null or incorrect shape for logging.")  
  
         # Using zip to create a new dictionary that form the row for the
         # data frame

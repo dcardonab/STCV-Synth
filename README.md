@@ -33,6 +33,10 @@ On the STCV-Synth root folder, run: `python main.py`
     * [Documentation](https://docs.python.org/3/library/asyncio.html)
     * [Signal Library](https://docs.python.org/3/library/signal.html)
 
+* asyncio - Modify Queue
+    * [CPython - Queue File](https://github.com/python/cpython/blob/d8080c01195cc9a19af752bfa04d98824dd9fb15/Lib/asyncio/queues.py#L235)
+    * [Modify Queue to drop old items to make space for new ones](https://stackoverflow.com/questions/54376090/how-to-push-items-off-of-asyncio-priorityqueue-when-it-is-at-maxsize-and-i-put)
+
 * Bleak
     * [Documentation](https://bleak.readthedocs.io/en/latest/)
     * [GitHub](https://github.com/hbldh/bleak)
@@ -40,10 +44,15 @@ On the STCV-Synth root folder, run: `python main.py`
     * [SensorTag Example](https://github.com/hbldh/bleak/blob/develop/examples/sensortag.py)
     * [Service Explorer Example](https://github.com/hbldh/bleak/blob/develop/examples/service_explorer.py)
 
+* Orientation
+    * [3-DOF Orientation Tracking - Stanford](https://stanford.edu/class/ee267/notes/ee267_notes_imu.pdf)
+    * [Orientation from Acceleration](https://wiki.dfrobot.com/How_to_Use_a_Three-Axis_Accelerometer_for_Tilt_Sensing)
+    * [Quaternions for Orientation](https://blog.endaq.com/quaternions-for-orientation)
+    * [STMicroelectronics - Orientation](https://drive.google.com/file/d/1Xf-TZg9yErff3C9yOtBsvXd0sC9HHD0M/view)
+
 * Pyo
     * [Documentation](http://ajaxsoundstudio.com/pyodoc/)
     * [GitHub](https://github.com/belangeo/pyo)
 
-* Quaternions
-    * [3-DOF Orientation Tracking - Stanford](https://stanford.edu/class/ee267/notes/ee267_notes_imu.pdf)
-    * [Quaternions for Orientation](https://blog.endaq.com/quaternions-for-orientation)
+* General
+    * [Scale one range to another](https://stackoverflow.com/questions/4154969/how-to-map-numbers-in-range-099-to-range-1-01-0/33127793)

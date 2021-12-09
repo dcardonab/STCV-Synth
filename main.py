@@ -2,13 +2,15 @@ import asyncio
 import random
 import signal
 import sys
+import time 
 
 sys.path.append('lib')
-from lib.constants import ST_handles, ST_FIRMWARE_NAME
+from lib.constants import *
 from lib.df_logging import *
 from lib.screen import *
 from lib.st_ble import *
 from lib.synth import *
+from lib.util import scale
 
 
 async def main():
@@ -33,17 +35,21 @@ async def main():
     )
 
     """
-    INIT SYNTHESIZER
+    INIT SYNTHESIZER ENGINE
     """
+    print("\n\n\t##### Initializing Synthesizer #####\n")
     # The server is initialized at a 48kHz sample rate.
     synth = Synth(48000)
     # 'sampletype' of 1 sets the bit depth to 24-bit int for audio recordings.
     synth.server.recordOptions(sampletype=1, quality=1)
 
     """
-    INIT SENSORTILE
+    INIT CONTROLLERS
     """
-    x = input("\n\tWould you like the SensorTile controller? (y/n) ")
+    # Init SensorTile
+    print("\n\n\t##### Initializing Controllers #####\n")
+
+    x = input("\tWould you like the SensorTile controller? (y/n) ")
     if x.lower() == "y":
         # Find ST address
         ST_address = await find_ST(ST_FIRMWARE_NAME)
@@ -52,18 +58,19 @@ async def main():
 
     # Connect to SensorTile if an address was found.
     if ST_address:
+        print("\n\tInitializing SensorTile\n")
         # Create a SensorTile object, and connect via
         sensor_tile = SensorTile(ST_address)
         # Connect to ST
         await sensor_tile.BLE_connect()
 
-    """
-    INIT COMPUTER VISION
-    """
-    x = input("\n\tWould you like the computer vision controller? (y/n) ")
+    # Init Computer Vision
+    x = input("\n\n\tWould you like the computer vision controller? (y/n) ")
     if x.lower() == "y":
+        print("\n\t##### Initializing OpenCV #####\n")
         screen = Screen()
         screen.bpm_slider.set_bpm(int(60 / synth.bpm))
+        screen.plus_minus_subdivision.init_value(int(synth.sub_division))
     else:
         screen = False
 
@@ -78,13 +85,18 @@ async def main():
     out_path = synth.get_render_path()
 
     if ST_address:
-        # Enable notifications of SensorTile data.
-        await sensor_tile.start_notification(ST_handles['environment'])
-        await sensor_tile.start_notification(ST_handles['motion'])
-        await sensor_tile.start_notification(ST_handles['quaternions'])
+        # Enable notifications of SensorTile data and create logger for
+        # DataFrames containing SensorTile data from each activated handle.
 
-        # Create Logger for DataFrames containing the SensorTile data.
-        dfl = data_frame_logger(f"{out_path}.csv")
+        # await sensor_tile.start_notification(ST_handles['environment'])
+        # environment_dfl = data_frame_logger(f"{out_path}_environment.csv")
+
+        await sensor_tile.start_notification(ST_handles['motion'])
+        motion_dfl = data_frame_logger(f"{out_path}_motion.csv")
+
+        # await sensor_tile.start_notification(ST_handles['quaternions'])
+        # quaternions_dfl = data_frame_logger(f"{out_path}_quaternions.csv")
+
 
     # Start recording of the new audio file.
     synth.server.recstart(f"{out_path}.wav")
@@ -98,18 +110,31 @@ async def main():
     while True:
         # Get and log ST data
         if ST_address:
-            # Get data from Queues using asyncio.gather() method to
-            # concurrently run awaitable tasks.
-            environment, motion, quaternions = await asyncio.gather(
-                sensor_tile.environment_data.get(),
-                sensor_tile.motion_data.get(),
-                sensor_tile.quaternions_data.get()
+            # Get data from Queues, create data frames, and add to logger.
+
+            # environment = await sensor_tile.environment_data.get()
+            # environment_dataframe = environment_dfl.new_record(environment)
+            # await environment_dfl.add_record(environment_dataframe)
+
+            motion = await sensor_tile.motion_data.get()
+            motion_dataframe = motion_dfl.new_record(motion)
+            await motion_dfl.add_record(motion_dataframe)
+
+            # quaternions = await sensor_tile.quaternions_data.get()
+            # quaternions_dataframe = quaternions_dfl.new_record(quaternions)
+            # await quaternions_dfl.add_record(quaternions_dataframe)
+
+            # The magnitude of acceleration will control amplitude.
+            # Since the accelerometer of the ST is calibrated to a maximum
+            # value of 2G per axis, the approximate maximum magnitude will
+            # be 3464 G. The minimum magnitude value will approximately be
+            # 1030 G, according to tests that kept the ST stationary.
+            synth.amp_env.mul = scale(
+                motion[1]['r'],
+                (MIN_ACC_MAGNITUDE, MAX_ACC_MAGNITUDE),
+                (0.25, 0.9)
             )
 
-            # Create data frame from retrieved info, and add to logger
-            new_dataframe = dfl.new_record(environment, motion, quaternions)
-            await dfl.add_record(new_dataframe)
-        
         # Read image from the camera for processing and displaying it.
         # This includes all visual GUI controls.
         if screen:
@@ -153,11 +178,18 @@ async def main():
                 synth.set_bpm(screen.bpm_slider.BPM)
                 synth.set_pulse_rate()
 
+            if int(synth.sub_division) != \
+               screen.plus_minus_subdivision.current_value:
+                synth.set_subdivision(
+                    str(screen.plus_minus_subdivision.current_value)
+                )
+                synth.set_pulse_rate()
+
         # Update synth values
         scale_step = random.choice(synth.scale[1])
         synth.set_freq(scale_step)
         synth.play()
-        await asyncio.sleep(synth.pulse_rate)
+        time.sleep(synth.pulse_rate)
 
         if keyboard_interrupt_event.is_set():
             break
@@ -165,7 +197,7 @@ async def main():
     """
     SHUTDOWN ROUTINE
     """
-    print("\n\t##### Shutdown Initialized #####")
+    print("\n\n\t##### Shutdown Initialized #####")
 
     # Stop Synth
     synth.server.recstop()
@@ -173,14 +205,19 @@ async def main():
 
     # Stop ST
     if ST_address:
-        # Stop notification characteristics.
-        await sensor_tile.stop_notification(ST_handles['environment'])
+        # Stop notification characteristics and write logs to .csv files.
+
+        # await sensor_tile.stop_notification(ST_handles['environment'])
+        # await environment_dfl.write_log()
+
         await sensor_tile.stop_notification(ST_handles['motion'])
-        await sensor_tile.stop_notification(ST_handles['quaternions'])
+        await motion_dfl.write_log()
+
+        # await sensor_tile.stop_notification(ST_handles['quaternions'])
+        # await quaternions_dfl.write_log()
+
         # Disconnect from ST.
         await sensor_tile.BLE_disconnect()
-        # Write logger to .csv file.
-        await dfl.write_log()
         
 
 if __name__ == "__main__":

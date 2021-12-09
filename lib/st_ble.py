@@ -1,10 +1,10 @@
-import asyncio
-import struct
+from struct import unpack_from
 from typing import Union
 
 from bleak import BleakClient, BleakError, BleakScanner
 
 from constants import ST_handles
+from droppingLifoQueue import droppingLifoQueue
 from util import *
 
 
@@ -31,7 +31,7 @@ class SensorTile():
         Keys: 'acc_x', 'acc_y', 'acc_z',
               'gyr_x', 'gyr_y', 'gyr_z',
               'mag_x', 'mag_y', 'mag_z',
-              'acc_mag', 'gyr_mag', 'mag_mag'
+              'r', 'theta', 'phi'
 
         'quaternions_data' second tuple is a dictionary.
         Keys: 'i', 'j', 'k', 'roll', 'pitch', 'yaw'
@@ -40,15 +40,15 @@ class SensorTile():
         self.client = BleakClient(self.address)
         # A LiFo Queue will ensure that the most recent registered
         # ST data is retrieved
-        self.environment_data = asyncio.LifoQueue(maxsize=1)
-        self.motion_data = asyncio.LifoQueue(maxsize=1)
-        self.quaternions_data = asyncio.LifoQueue(maxsize=1)
+        self.environment_data = droppingLifoQueue(maxsize=1)
+        self.motion_data = droppingLifoQueue(maxsize=1)
+        self.quaternions_data = droppingLifoQueue(maxsize=1)
 
     async def BLE_connect(self) -> None:
         """ Connect to SensorTile and ensure connection was established. """
         await self.client.connect()
         assert self.client.is_connected, "ST is not connected"
-        print("\n\tConnected to SensorTile")
+        print("\tConnected to SensorTile")
 
     async def BLE_disconnect(self) -> None:
         """ Disconnect from SensorTile """
@@ -95,19 +95,19 @@ class SensorTile():
         # Store incoming data in a dictionary
         environment_data = {}
 
-        time_stamp = struct.unpack_from("<h", data[:2])[0]
+        time_stamp = unpack_from("<h", data[:2])[0]
 
         # Pressure is represented by 4 bytes
-        environment_data['pressure'] = struct.unpack_from("<h", data[2:6])[0]
+        environment_data['pressure'] = unpack_from("<h", data[2:6])[0]
 
-        environment_data['humidity'] = struct.unpack_from("<h", data[6:8])[0]
+        environment_data['humidity'] = unpack_from("<h", data[6:8])[0]
 
         # The order of the temp sensors is swapped in the ST GATT transfer.
-        environment_data['temp2'] = struct.unpack_from("<h", data[8:10])[0]
-        environment_data['temp1'] = struct.unpack_from("<h", data[10:])[0]
+        environment_data['temp2'] = unpack_from("<h", data[8:10])[0]
+        environment_data['temp1'] = unpack_from("<h", data[10:])[0]
         
         # Add data to Queue
-        await self.environment_data.put((time_stamp, environment_data))
+        self.environment_data.put_nowait((time_stamp, environment_data))
 
     async def motion_callback(self, data: bytearray) -> None:
         """
@@ -121,42 +121,46 @@ class SensorTile():
         # Store incoming data in a dictionary
         motion_data = {}
 
-        time_stamp = struct.unpack_from("<h", data[:2])[0]
+        time_stamp = unpack_from("<h", data[:2])[0]
 
         # Acceleration
-        motion_data['acc_x'] = struct.unpack_from("<h", data[2:4])[0]
-        motion_data['acc_y'] = struct.unpack_from("<h", data[4:6])[0]
-        motion_data['acc_z'] = struct.unpack_from("<h", data[6:8])[0] 
+        motion_data['acc_x'] = unpack_from("<h", data[2:4])[0]
+        motion_data['acc_y'] = unpack_from("<h", data[4:6])[0]
+        motion_data['acc_z'] = unpack_from("<h", data[6:8])[0] 
 
         # Gyroscope
         # Data is multiplied by 100 to compensate for the division
         # applied in the firmware. This division is so that the
         # gyroscope data fits in two bytes of data.
-        motion_data['gyr_x'] = struct.unpack_from("<h", data[8:10])[0] * 100
-        motion_data['gyr_y'] = struct.unpack_from("<h", data[10:12])[0] * 100
-        motion_data['gyr_z'] = struct.unpack_from("<h", data[12:14])[0] * 100
+        motion_data['gyr_x'] = unpack_from("<h", data[8:10])[0] * 100
+        motion_data['gyr_y'] = unpack_from("<h", data[10:12])[0] * 100
+        motion_data['gyr_z'] = unpack_from("<h", data[12:14])[0] * 100
 
         # Magnetometer
         # Incoming magnetometer data has the magnetometer offset
         # subtracted from it prior to being sent.
-        motion_data['mag_x'] = struct.unpack_from("<h", data[14:16])[0]
-        motion_data['mag_y'] = struct.unpack_from("<h", data[16:18])[0]
-        motion_data['mag_z'] = struct.unpack_from("<h", data[18:])[0]
+        motion_data['mag_x'] = unpack_from("<h", data[14:16])[0]
+        motion_data['mag_y'] = unpack_from("<h", data[16:18])[0]
+        motion_data['mag_z'] = unpack_from("<h", data[18:])[0]
 
-        # Calculate Magnitude of each parameter.
-        # Magnitudes are rounded to 2 decimal places.
-        motion_data['acc_mag'] = round(magnitude(
-            motion_data['acc_x'], motion_data['acc_y'], motion_data['acc_z']
-        ), 2)
-        motion_data['gyr_mag'] = round(magnitude(
-            motion_data['gyr_x'], motion_data['gyr_y'], motion_data['gyr_z']
-        ), 2)
-        motion_data['mag_mag'] = round(magnitude(
-            motion_data['mag_x'], motion_data['mag_y'], motion_data['mag_z']
-        ), 2)
+        # Calculate Orientation, where:
+        # * 'r' is radial distance (i.e., distance to origin), or magnitude
+        # * 'theta' is polar angle (i.e., angle with respect to polar axis)
+        # * 'phi' is azimuth angle (i.e., angle of rotation from initial
+        #   meridian plane)
+        motion_data['r'], motion_data['theta'], motion_data['phi'] = \
+            orientation_from_acceleration(
+                motion_data['acc_x'],
+                motion_data['acc_y'],
+                motion_data['acc_z']
+        )
+
+        # print(f"r: {motion_data['r']}\
+        #     \ttheta: {motion_data['theta']}\
+        #     \tphi: {motion_data['phi']}", end='\r', flush=True)
         
         # Add data to Queue
-        await self.motion_data.put((time_stamp, motion_data))
+        self.motion_data.put_nowait((time_stamp, motion_data))
 
     async def quaternions_callback(self, data: bytearray) -> None:
         """
@@ -172,24 +176,23 @@ class SensorTile():
         quat_data = {}
 
         # Retrieve time stamp
-        time_stamp = struct.unpack_from("<h", data[:2])[0]
+        time_stamp = unpack_from("<h", data[:2])[0]
 
         # Retrieve First Quaternion
-        quat_data['i'] = struct.unpack_from("<h", data[2:4])[0]
-        quat_data['j'] = struct.unpack_from("<h", data[4:6])[0]
-        quat_data['k'] = struct.unpack_from("<h", data[6:])[0]
+        quat_data['i'] = unpack_from("<h", data[2:4])[0]
+        quat_data['j'] = unpack_from("<h", data[4:6])[0]
+        quat_data['k'] = unpack_from("<h", data[6:])[0]
 
         # Calculate Euler angles for first quaternion.
         # Euler angles are rounded to 2 decimal places in 'util.py'.
         quat_data['roll'], quat_data['pitch'], quat_data['yaw'] = \
-            vecQ_to_euler(
-                quat_data['i'], quat_data['j'], quat_data['k']
-        )
+            vecQ_to_euler(quat_data['i'], quat_data['j'], quat_data['k'])
         
         # Add data to Queue. Note that the quaternion dictionaries are passed
         # as a single list. Since this list is contained in a tuple, the
         # syntax to retrieve quaternion data is: quaternion[1][0]['roll']
-        await self.quaternions_data.put((time_stamp, quat_data))
+
+        self.quaternions_data.put_nowait((time_stamp, quat_data))
 
 
 async def find_ST(firmware_name: str) -> Union[str, None]:
@@ -198,7 +201,7 @@ async def find_ST(firmware_name: str) -> Union[str, None]:
     the retrieved address is a string. If that is the case, then return
     the address. If not, offer the user the possibility to search again.
     """
-    print("\n\t##### Scanning BLE Devices #####\n")
+    print("\n\tScanning BLE Devices")
     search_for_ST = True
     while search_for_ST:
         # Find SensorTile address

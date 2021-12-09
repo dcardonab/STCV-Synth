@@ -35,7 +35,6 @@ class Synth():
         and run logic for setting the properties that will determine how
         frequencies and timings will be performed when executing the synth.
         """
-        print("\n\n\t##### Initializing Synthesizer #####\n")
         # Create a server to handle all communications with
         # Portaudio and Portaudio MIDI.
         self.server = Server(audio_sample_rate)
@@ -50,6 +49,9 @@ class Synth():
         #     - setup of Sample Rate and Number of Channels
         self.server.boot()
         print("\tAudio server initialized")
+
+        # Set the overall amplitude of the server.
+        self.server.amp = 0.9
 
         # Start audio processing in the server.
         self.server.start()

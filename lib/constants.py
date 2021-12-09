@@ -9,6 +9,10 @@ DEF_TONAL_CENTER = 'A'
 # ST Constants
 ST_FIRMWARE_NAME = 'AM1V310'
 
+# Accelerometer magnitude range
+MIN_ACC_MAGNITUDE = 1030
+MAX_ACC_MAGNITUDE = 3464
+
 # Tempered Scales
 scales = {
     # Diatonic Modes

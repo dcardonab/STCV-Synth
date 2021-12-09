@@ -1,9 +1,13 @@
-from lib.plus_minus_buttons import PlusMinusButtons
-from lib.constants import bpm_sub_divisions
-from lib.geometry_utility import point_intersects, polygon_bounds, create_rectangle_array
 from shapely.geometry import Point
 
+from lib.plus_minus_buttons import PlusMinusButtons
+from lib.constants import bpm_sub_divisions
+from lib.geometry_utility import point_intersects, create_rectangle_array
+
 class PlusMinusSubdivions(PlusMinusButtons):
+    def init_value(self, value):
+        self.current_value = value
+
     def set_current_value(self, new_value):
         """
         This method only allows values the match the tuples list in the dictionary
@@ -38,7 +42,6 @@ class PlusMinusSubdivions(PlusMinusButtons):
         if str(current_value) in bpm_sub_divisions.keys():
             current_value_tuple = bpm_sub_divisions[str(current_value)]
             return current_value_tuple
-        
 
     def minus_btn_click(self, x, y):
         # Since we changed the count factor, we needed to override this method
