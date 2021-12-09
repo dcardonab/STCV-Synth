@@ -5,11 +5,16 @@ from shapely.geometry import Point
 
 class PlusMinusSubdivions(PlusMinusButtons):
     def set_current_value(self, new_value):
+        """
+        This method only allows values the match the tuples list in the dictionary
+        """
         if new_value == self.current_value:
             # No change in the current value
             pass
         elif new_value > self.current_value:
-            
+            # The values here increase only by one step. Since the 
+            # values are pulled from a dictionary, the key
+            # is the value of that can be selected
             if str(self.current_value) in bpm_sub_divisions.keys():
                 t = list(bpm_sub_divisions)
                 i = t.index(str(self.current_value))
@@ -27,6 +32,8 @@ class PlusMinusSubdivions(PlusMinusButtons):
         return super().set_current_value(self.current_value)
     
     def get_current_value_constant(self):
+        # The current value is tied to a dictionary in the constants.py
+        # Only values from that dictionary can be set
         current_value = self.get_current_value()    
         if str(current_value) in bpm_sub_divisions.keys():
             current_value_tuple = bpm_sub_divisions[str(current_value)]
@@ -34,6 +41,7 @@ class PlusMinusSubdivions(PlusMinusButtons):
         
 
     def minus_btn_click(self, x, y):
+        # Since we changed the count factor, we needed to override this method
         # processes the events for the plus botton click
         # A button click is simply looking for a finger 
         # landmark intersection
@@ -48,6 +56,7 @@ class PlusMinusSubdivions(PlusMinusButtons):
                     self.set_current_value(self.current_value-1)
 
     def plus_btn_click(self, x, y):
+        # Since we changed the count factor, we needed to override this method
         # processes the events for the minus botton click
         # A button click is simply looking for a finger 
         # landmark intersection
