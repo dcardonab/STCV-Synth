@@ -9,6 +9,7 @@ from lib.plus_minus_subdivisions import PlusMinusSubdivions
 from lib.plus_minus_buttons import PlusMinusButtons
 from lib.menu import Menu
 from lib.slider import Slider
+from lib.scales_menu import ScaleMenu
 
 class Screen:
     """
@@ -58,7 +59,7 @@ class Screen:
         # Creating Menu instance with control layout
         # Making use of the controls default layout values
         # The menu dictionary is used as the menu items
-        self.scales_menu = Menu(x=200, y=100, menu_dictionary=scales)
+        self.scales_menu = ScaleMenu(x=200, y=100, menu_dictionary=scales)
 
         # The Menu class is created from configurable dictionary, in this
         # in this case a Pulse and Sustain menu items

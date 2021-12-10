@@ -50,9 +50,10 @@ class Menu:
                     rectangle = self.menu_grid_dictionary[item]
                     if point_intersects((x, y), rectangle):
                         self.selected_menu_item = {item: rectangle}
+                        break
 
     def draw_sub_item(self, scale_name, overlay_img, x, y):
-        # Creates individual menu items base on diction
+        # Creates individual menu items base on dictionary
         if self.selected_menu_item:
             if scale_name in self.selected_menu_item:
                 cv2.rectangle(

@@ -5,6 +5,7 @@ from lib.df_logging import data_frame_logger
 from lib.screen import Screen
 from lib.geometry_utility import *
 from lib.plus_minus_base import PlusMinusBase
+from lib.plus_minus_subdivisions import PlusMinusSubdivions
 from lib import *
 import cv2
 
@@ -41,8 +42,56 @@ def test_plus_minus():
     y = pmb.get_current_value_constant()
     print(x)
 
+def test_plus_minus_subdivsions():
+    pms = PlusMinusSubdivions(
+            x=1000, y=550, label="8ve base", label_offset_x=840, visible=False) 
+    
+    pms.set_current_value(1)
+    print(pms.get_current_value_constant())
 
+    pms.set_current_value(2)
+    pms.get_current_value
+    print(pms.get_current_value(), pms.get_current_value_constant())
 
+    pms.set_current_value(3)
+    print(pms.get_current_value(), pms.get_current_value_constant())
+
+    pms.set_current_value(4)
+    print(pms.get_current_value(), pms.get_current_value_constant())
+
+    pms.set_current_value(6)
+    print(pms.get_current_value(), pms.get_current_value_constant())
+
+    pms.set_current_value(8)
+    print(pms.get_current_value(), pms.get_current_value_constant())
+
+    pms.set_current_value(12)
+    print(pms.get_current_value(), pms.get_current_value_constant())
+
+    pms.set_current_value(16)
+    print(pms.get_current_value(), pms.get_current_value_constant())
+    
+    pms.set_current_value(15)
+    print(pms.get_current_value(), pms.get_current_value_constant())
+
+    pms.set_current_value(12)
+    print(pms.get_current_value(), pms.get_current_value_constant())
+
+    pms.set_current_value(9)
+    print(pms.get_current_value(), pms.get_current_value_constant())
+
+    pms.set_current_value(9)
+    print(pms.get_current_value(), pms.get_current_value_constant())
+
+    pms.set_current_value(4)
+    print(pms.get_current_value(), pms.get_current_value_constant())
+
+    pms.set_current_value(4)
+    print(pms.get_current_value(), pms.get_current_value_constant())
+
+    pms.set_current_value(4)
+    print(pms.get_current_value(), pms.get_current_value_constant())
+    
 def test_ui_loop():
 
     screen = Screen()
@@ -89,6 +138,6 @@ def test_ui_loop():
 
 if __name__ == "__main__":
     
-    test_plus_minus()
+    test_ui_loop()
     
     
