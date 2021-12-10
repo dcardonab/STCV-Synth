@@ -3,11 +3,11 @@ from sys import platform
 from typing import Union
 
 from bleak import BleakClient, BleakError, BleakScanner
+import numpy as np
 
 from constants import ST_handles
 from droppingLifoQueue import droppingLifoQueue
 from lib.constants import ST_FIRMWARE_NAME
-from util import *
 
 
 class SensorTile():
@@ -45,6 +45,11 @@ class SensorTile():
         self.environment_data = droppingLifoQueue(maxsize=1)
         self.motion_data = droppingLifoQueue(maxsize=1)
         self.quaternions_data = droppingLifoQueue(maxsize=1)
+
+        # In a relative quaternion, the initial value of the W (real)
+        # component is 1. The information received from the ST is a
+        # vector quaternion.
+        self.quat_w = 1
 
     async def BLE_connect(self) -> None:
         """ Connect to SensorTile and ensure connection was established. """
@@ -149,17 +154,26 @@ class SensorTile():
         motion_data['mag_y'] = result[8]
         motion_data['mag_z'] = result[9]
 
-        # Calculate Orientation, where:
+        """
+        Calculate Orientation
+        """
         # * 'r' is radial distance (i.e., distance to origin), or magnitude
         # * 'theta' is polar angle (i.e., angle with respect to polar axis)
         # * 'phi' is azimuth angle (i.e., angle of rotation from initial
         #   meridian plane)
-        # Arguments passed as *args will process in the C layer of Python,
-        # which will run faster than passing dict or list values.
-        motion_data['r'], motion_data['theta'], motion_data['phi'] = \
-            orientation_from_acceleration(*result[1:4])
-
-        # print(f"r: {motion_data['r']} theta: {motion_data['theta']} phi: {motion_data['phi']}", end='\r', flush=True)
+        # This implementation of magnitude is faster than alternatives.
+        # REF:
+        # https://stackoverflow.com/questions/9171158/how-do-you-get-the-magnitude-of-a-vector-in-numpy
+        motion_data['r'] = np.round(
+            np.sqrt(np.dot(result[1:4], result[1:4])), 2)
+        motion_data['theta'] = np.round(
+            np.degrees(np.arccos(motion_data['acc_z'] / motion_data['r'])),
+            2
+        )
+        motion_data['phi'] = np.round(
+            np.degrees(np.arctan2(motion_data['acc_y'], motion_data['acc_z'])),
+            2
+        )
         
         # Add data to Queue
         self.motion_data.put_nowait((time_stamp, motion_data))
@@ -183,14 +197,62 @@ class SensorTile():
         time_stamp = result[0]
 
         # Retrieve First Quaternion
-        quat_data['i'] = result[1]
-        quat_data['j'] = result[2]
-        quat_data['k'] = result[3]
+        quat_data['raw_i'] = result[1]
+        quat_data['raw_j'] = result[2]
+        quat_data['raw_k'] = result[3]
 
-        # Calculate Euler angles for first quaternion.
-        # Euler angles are rounded to 2 decimal places in 'util.py'.
-        quat_data['roll'], quat_data['pitch'], quat_data['yaw'] = \
-            vecQ_to_euler(*result[1:])
+        """
+        Calculate Euler Angles
+        """
+        # Normalize Incoming vector quaternion.
+        norm = np.sqrt(np.dot(result[1:], result[1:]))
+        vec_q = list(i / norm for i in result[1:]) \
+                if norm > 0 else list(result[1:])
+        
+        # Add real component to the quaternion.
+        q = [self.quat_w] + vec_q
+
+        # Normalize all 4 quaternion values.
+        norm = np.sqrt(np.dot(q, q))
+        q = list(i / norm for i in q)
+
+        quat_data['norm_w'] = np.round(q[0], 2)
+        quat_data['norm_i'] = np.round(q[1], 2)
+        quat_data['norm_j'] = np.round(q[2], 2)
+        quat_data['norm_k'] = np.round(q[3], 2)
+
+        # Roll is the rotation about the x axis.
+        quat_data['roll'] = np.round(np.degrees(
+            np.arctan2(
+                2 * (q[0] * q[1] + q[2] * q[3]),
+                1 - 2 * (q[1] ** 2 + q[2] ** 2)
+            )),
+            2
+        )
+
+        # Pitch is the rotation about the y axis.
+        pitch = 2 * (q[0] * q[2] - q[1] * q[3])
+        # Prevent passing a value outside the arcsine input range,
+        # which is -1 to 1 inclusive.
+        if pitch > 1:
+            quat_data['pitch'] = np.round(np.degrees(np.arcsin(1)), 2)
+        elif pitch < -1:
+            quat_data['pitch'] = np.round(np.degrees(np.arcsin(-1)), 2)
+        else:
+            quat_data['pitch'] = np.round(np.degrees(np.arcsin(pitch)), 2)
+
+        # Yaw is the rotation about the z axis.
+        quat_data['yaw'] = np.round(np.degrees(
+            np.arctan2(
+                2 * (q[0] * q[3] + q[1] * q[2]),
+                1 - 2 * (q[2] ** 2 + q[3] ** 2)
+            )),
+            2
+        )
+
+        # print(f"roll: {quat_data['roll']}\tpitch: {quat_data['pitch']}\tyaw: {quat_data['yaw']}", end='\r', flush=True)
+
+        self.quat_w = q[0]
         
         # Add data to Queue.
         self.quaternions_data.put_nowait((time_stamp, quat_data))

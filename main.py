@@ -10,7 +10,6 @@ from lib.df_logging import *
 from lib.screen import *
 from lib.st_ble import *
 from lib.synth import *
-from lib.util import scale
 
 
 async def main():
@@ -94,8 +93,8 @@ async def main():
         await sensor_tile.start_notification(ST_handles['motion'])
         motion_dfl = data_frame_logger(f"{out_path}_motion.csv")
 
-        # await sensor_tile.start_notification(ST_handles['quaternions'])
-        # quaternions_dfl = data_frame_logger(f"{out_path}_quaternions.csv")
+        await sensor_tile.start_notification(ST_handles['quaternions'])
+        quaternions_dfl = data_frame_logger(f"{out_path}_quaternions.csv")
 
 
     # Start recording of the new audio file.
@@ -120,9 +119,9 @@ async def main():
             motion_dataframe = motion_dfl.new_record(motion)
             await motion_dfl.add_record(motion_dataframe)
 
-            # quaternions = await sensor_tile.quaternions_data.get()
-            # quaternions_dataframe = quaternions_dfl.new_record(quaternions)
-            # await quaternions_dfl.add_record(quaternions_dataframe)
+            quaternions = await sensor_tile.quaternions_data.get()
+            quaternions_dataframe = quaternions_dfl.new_record(quaternions)
+            await quaternions_dfl.add_record(quaternions_dataframe)
 
             """
             Set Synth values from ST motion data.
@@ -130,42 +129,42 @@ async def main():
             # The magnitude of acceleration will control various parameters
             # of the envelope generator, including attack, amplitude
             # multiplier, and duration.
-            synth.amp_env.setAttack(scale(
+            synth.amp_env.setAttack(float(np.interp(
                 motion[1]['r'],
                 (MIN_ACC_MAGNITUDE, MAX_ACC_MAGNITUDE),
                 (synth.pulse_rate * 0.9, 0.01)
-            ))
+            )))
 
-            synth.amp_env.setMul(scale(
+            synth.amp_env.setMul(float(np.interp(
                 motion[1]['r'],
                 (MIN_ACC_MAGNITUDE, MAX_ACC_MAGNITUDE),
                 (0.25, 0.707)
-            ))
+            )))
 
-            synth.amp_env.setDur(scale(
+            synth.amp_env.setDur(float(np.interp(
                 motion[1]['r'],
                 (MIN_ACC_MAGNITUDE, MAX_ACC_MAGNITUDE),
                 (synth.pulse_rate * 0.9, 0.1)
-            ))
+            )))
 
             # Set the amplitude of the delay effect in the mixer
-            synth.mixer.setAmp(1, 0, scale(
+            synth.mixer.setAmp(1, 0, float(np.interp(
                 motion[1]['r'],
                 (MIN_ACC_MAGNITUDE, MAX_ACC_MAGNITUDE),
                 (0.1, 0.5)
-            ))
+            )))
 
-            synth.filt.setFreq(synth.filt_map.get(scale(
+            synth.filt.setFreq(synth.filt_map.get(float(np.interp(
                 motion[1]['theta'],
                 (MIN_TILT, MAX_TILT),
                 (0, 1)
-            )))
+            ))))
 
-            synth.reverb.setBal(scale(
+            synth.reverb.setBal(float(np.interp(
                 motion[1]['phi'],
                 (MIN_AZIMUTH, MAX_AZIUMTH),
                 (0, 0.707)
-            ))
+            )))
 
         # Read image from the camera for processing and displaying it.
         # This includes all visual GUI controls.
@@ -247,8 +246,8 @@ async def main():
         await sensor_tile.stop_notification(ST_handles['motion'])
         await motion_dfl.write_log()
 
-        # await sensor_tile.stop_notification(ST_handles['quaternions'])
-        # await quaternions_dfl.write_log()
+        await sensor_tile.stop_notification(ST_handles['quaternions'])
+        await quaternions_dfl.write_log()
 
         # Disconnect from ST.
         await sensor_tile.BLE_disconnect()

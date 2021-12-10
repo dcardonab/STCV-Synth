@@ -44,6 +44,9 @@ On the STCV-Synth root folder, run: `python main.py`
     * [SensorTag Example](https://github.com/hbldh/bleak/blob/develop/examples/sensortag.py)
     * [Service Explorer Example](https://github.com/hbldh/bleak/blob/develop/examples/service_explorer.py)
 
+* Numpy
+    * [Numpy Math Fuctions](https://numpy.org/doc/stable/reference/routines.math.html)
+
 * Orientation
     * [3-DOF Orientation Tracking - Stanford](https://stanford.edu/class/ee267/notes/ee267_notes_imu.pdf)
     * [Orientation from Acceleration](https://wiki.dfrobot.com/How_to_Use_a_Three-Axis_Accelerometer_for_Tilt_Sensing)
