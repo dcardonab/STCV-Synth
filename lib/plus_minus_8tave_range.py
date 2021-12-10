@@ -1,5 +1,5 @@
 from lib.plus_minus_base import PlusMinusButtons
-from lib.constants import 
+from lib.constants import bpm_sub_divisions
 
 class PlusMinus8taveRange(PlusMinusButtons):
     def init_value(self, value):
