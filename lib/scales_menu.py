@@ -26,6 +26,5 @@ class ScaleMenu(Menu):
                         self.selected_menu_item = {item: rectangle}
                         if item in scales.keys():
                             self.current_scale = {item: scales[item]}
-                            print(self.current_scale)
                         break
             return super().menu_item_clicked(x, y)

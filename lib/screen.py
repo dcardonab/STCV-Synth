@@ -1,5 +1,6 @@
 import cv2
 import os
+from lib import scales_menu
 # from shapely.geometry import Point
 
 from lib.constants import scales
