@@ -124,6 +124,9 @@ async def main():
             # quaternions_dataframe = quaternions_dfl.new_record(quaternions)
             # await quaternions_dfl.add_record(quaternions_dataframe)
 
+            """
+            Set Synth values from ST motion data.
+            """
             # The magnitude of acceleration will control various parameters
             # of the envelope generator, including attack, amplitude
             # multiplier, and duration.
