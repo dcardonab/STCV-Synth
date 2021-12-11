@@ -39,8 +39,10 @@ class Screen:
         self.switch_delay = 0
 
         # These values are used to calculate the FPS.
-        self.cTime = 0
-        self.pTime = 0
+        self.cur_time = 0
+        self.prev_time = 0
+        self.cur_tick = 0
+        self.prev_tick = 0
 
         self.init_controls()
 
@@ -61,7 +63,7 @@ class Screen:
         self.subdivision_plus_minus = GUI_Subdivions(
             x = 1000, y = 350,
             label = "Subdivision",
-            label_offset_x = 827,
+            label_offset_x = -175,
             visible = False
         )
 
@@ -70,16 +72,16 @@ class Screen:
         self.octave_base_plus_minus = GUI_OctaveBase(
             x = 1000, y = 450,
             label = "8ve Base",
-            label_offset_x = 840,
+            label_offset_x = -150,
             visible = False
         )
 
         # Creating PlusMinusButtons instance as member variable
         # Layout the coordinates and labels of the PlusMinusButtons control
-        self.octave_range_plus_minus = GUI_OctaveRange(
+        self.octave_range_plus_minus = PlusMinusButtons(
             x = 1000, y = 550,
             label = "8ve Range",
-            label_offset_x = 840,
+            label_offset_x = -170,
             visible = False
         )
 
@@ -147,12 +149,16 @@ class Screen:
             img[0: header.shape[0], 0: header.shape[1]] = header
 
             if show_FPS:
-                self.cTime = time.time()
-                fps = 1 / (self.cTime - self.pTime)
-                self.pTime = self.cTime
+                self.cur_time = time.time()
+                self.cur_tick = cv2.getTickCount()
+                fps = 1 / (self.cur_time - self.prev_time)
+                print(f"Execution time in seconds: {(self.cur_tick - self.prev_tick) / cv2.getTickFrequency()}", end='\r', flush=True)
+                self.prev_time = self.cur_time
+                self.prev_tick = self.cur_tick
 
                 cv2.putText(
-                    img, f"FPS: {int(fps)}", (400, 70), cv2.FONT_HERSHEY_PLAIN, 3, (255, 0, 0), 2
+                    img, f"FPS: {int(fps)}", (400, 70),
+                    cv2.FONT_HERSHEY_PLAIN, 3, (255, 0, 0), 2
                 )
             
             # Display image in the screen context.
@@ -195,16 +201,16 @@ class Screen:
         img = self.bpm_slider.draw_controls(img)
 
         # Subdivision plus-minus control
-        img = self.subdivision_plus_minus.draw(img)
         self.subdivision_plus_minus.set_visible(True)
+        img = self.subdivision_plus_minus.draw(img)
 
         # Octave Range Control
-        img = self.octave_range_plus_minus.draw(img)
         self.octave_range_plus_minus.set_visible(True)
+        img = self.octave_range_plus_minus.draw(img)
 
         # Octave Base Control
-        img = self.octave_base_plus_minus.draw(img)
         self.octave_base_plus_minus.set_visible(True)
+        img = self.octave_base_plus_minus.draw(img)
 
         return img
 
@@ -213,16 +219,16 @@ class Screen:
         draw_settings_gui sets the settings GUI controls visible.
         """
         # Scale selector
-        img = self.scales_menu.draw(img)
         self.scales_menu.set_visible(True)
+        img = self.scales_menu.draw(img)
 
         # Synthesizer mode
-        img = self.pulse_sustain_menu.draw(img)
         self.pulse_sustain_menu.set_visible(True)
+        img = self.pulse_sustain_menu.draw(img)
 
         # SensorTile hand selection
-        img = self.left_right_menu.draw(img)
         self.left_right_menu.set_visible(True)
+        img = self.left_right_menu.draw(img)
 
         return img
 

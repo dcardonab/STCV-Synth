@@ -31,11 +31,11 @@ class PlusMinusButtons:
         self.y2 = y + 50    # Bottom (Height)
 
         # Button Design.
-        self.label = label                      # Button Label
-        self.text_color = text_color            # Text color for label
-        self.btm_text_color = btm_text_color    # Text color for botton
-        self.back_color = back_color            # Back color of text button
-        self.label_offset_x = label_offset_x    # Distance from the button
+        self.label = label                              # Button Label
+        self.text_color = text_color                    # Text color for label
+        self.btm_text_color = btm_text_color            # Text color for botton
+        self.back_color = back_color                    # Back color of text button
+        self.label_offset_x = self.x1 + label_offset_x  # Distance from the button
 
         # Initialize range and value of GUI element.
         self.set_range(min_value, max_value)
@@ -174,32 +174,6 @@ class GUI_OctaveBase(PlusMinusButtons):
             return BASE_MULT_OPTIONS[str(value)]
 
 
-class GUI_OctaveRange(PlusMinusButtons):
-    """
-    This class overrides the 'set_value' method of the PlusMinusButtons
-    class to utilize the keys of the octave range dictionary.
-    """
-    def set_value(self, value: int) -> None:
-        if value > self.value:
-            # The values here increase only by one step. Since the 
-            # values are pulled from a dictionary, the key
-            # is the value of that can be selected
-            if str(self.value) in BPM_SUBDIVISIONS.keys():
-                keys = list(BPM_SUBDIVISIONS)
-                index = keys.index(str(self.value))
-                if index + 1 < len(keys):
-                    key = int(keys[index + 1])
-                    self.value = key
-
-        elif value < self.value:
-            if str(self.value) in BPM_SUBDIVISIONS.keys():
-                keys = list(BPM_SUBDIVISIONS)
-                index = keys.index(str(self.value))
-                if index - 1 >= 0:
-                    key = int(keys[index - 1])
-                    self.value = key
-
-
 class GUI_Subdivions(PlusMinusButtons):
     
     def set_value(self, value):
@@ -216,7 +190,7 @@ class GUI_Subdivions(PlusMinusButtons):
                 if index + 1 < len(keys):
                     key = int(keys[index + 1])
                     self.value = key
-                    
+
         elif value < self.value:
             if str(self.value) in BPM_SUBDIVISIONS.keys():
                 keys = list(BPM_SUBDIVISIONS)

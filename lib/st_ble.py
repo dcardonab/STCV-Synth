@@ -8,7 +8,7 @@ from bleak import BleakClient, BleakError, BleakScanner
 import numpy as np
 
 # Local Files
-from constants import ST_FIRMWARE_NAME
+from constants import ST_FIRMWARE_NAME, ST_HANDLES
 from droppingLifoQueue import droppingLifoQueue
 
 
@@ -89,9 +89,9 @@ class SensorTile():
         Redirect incoming notification data to the adequate callback function.
         """
         # Route incoming characteristics to the appropriate callback functions
-        if char == ST_handles['environment']:
+        if char == ST_HANDLES['environment']:
             await self.environment_callback(data)
-        elif char == ST_handles['motion']:
+        elif char == ST_HANDLES['motion']:
             await self.motion_callback(data)
         else:
             await self.quaternions_callback(data)

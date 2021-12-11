@@ -180,21 +180,41 @@ async def main():
         # Read image from the camera for processing and displaying it.
         # This includes all visual GUI controls.
         if screen:
+            # Because octave range has constrains based on the octave base,
+            # and the GUI element is unconstrained, it needs to be updated
+            # in case there was any truncation applied when updating the
+            # synth's octave range.
+            if synth.oct_range != screen.octave_range_plus_minus.value:
+                screen.octave_range_plus_minus.set_value(synth.oct_range)
+
             # Update Octave Range GUI control in case it exceeded the maximum
             # for the selected base.
             screen.CV_loop(show_FPS)
         
-            # Update Synth parameters based on CV controllers.
+            """
+            Update Synth parameters based on CV controllers.
+            """
+            # Update synth BPM if it changed in the GUI.
             if synth.bpm != 60 / screen.bpm_slider.BPM:
                 synth.set_bpm(screen.bpm_slider.BPM)
+                # Apply new BPM to the pulsing rate.
                 synth.set_pulse_rate()
 
+            # Update synth subdivision it changed in the GUI.
             if int(synth.subdivision) != \
                screen.subdivision_plus_minus.value:
                 synth.set_subdivision(
                     str(screen.subdivision_plus_minus.value)
                 )
+                # Apply new subdivision to the pulsing rate.
                 synth.set_pulse_rate()
+
+            # Update synth octave range if it changed in the GUI.
+            if synth.oct_range != screen.octave_range_plus_minus.value:
+                synth.set_oct_range(screen.octave_range_plus_minus.value)
+                # Apply new octave range to the scale. The first value of
+                # the scale tuple contains the name of the scale.
+                synth.set_scale(synth.scale[0])
 
         # Update synth values. Numpy random module is used as opposed
         # to Python's 'random' library, since Numpy will compute random
