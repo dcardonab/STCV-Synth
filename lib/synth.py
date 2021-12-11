@@ -335,22 +335,26 @@ class Synth():
         Used in Linux to select the correct audio device. Make sure to select
         the 'default' named device for proper operation of the Pyo server.
         """
-        available_devices = pa_list_devices()
+        # available_devices = pa_list_devices()
 
-        # Automatic selection of corresponding device.
-        for device in available_devices:
-            if "name: default" in device:
-                if device[1] == ':':
-                    device_number = int(device[0])
-                elif device[2] == ':':
-                    device_number = int(device[0:2])
+        # # Automatic selection of corresponding device.
+        # for device in available_devices:
+        #     if "name: default" in device:
+        #         if device[1] == ':':
+        #             device_number = int(device[0])
+        #         elif device[2] == ':':
+        #             device_number = int(device[0:2])
         
-        # Manual selection if automatic selection fails.
-        if not device_number:
-            print("\tSelect device with 'default' name")
-            device_number = int(input("\n\tSelect audio device: "))
+        # # Manual selection if automatic selection fails.
+        # if not device_number:
+        #     print("\tSelect device with 'default' name")
+        #     device_number = int(input("\n\tSelect audio device: "))
+
+        pa_list_devices()
+        print("\tSelect device with 'default' name")
+        device_number = int(input("\n\tSelect audio device: "))
             
-        self.server.setOutputDevice(device)
+        self.server.setOutputDevice(device_number)
 
     """
     RENDER
