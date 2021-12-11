@@ -180,9 +180,6 @@ class GUI_OctaveRange(PlusMinusButtons):
     class to utilize the keys of the octave range dictionary.
     """
     def set_value(self, value: int) -> None:
-        # if value == self.value:
-        #     # No change in the current value
-        #     pass
         if value > self.value:
             # The values here increase only by one step. Since the 
             # values are pulled from a dictionary, the key
@@ -193,6 +190,7 @@ class GUI_OctaveRange(PlusMinusButtons):
                 if index + 1 < len(keys):
                     key = int(keys[index + 1])
                     self.value = key
+
         elif value < self.value:
             if str(self.value) in BPM_SUBDIVISIONS.keys():
                 keys = list(BPM_SUBDIVISIONS)
@@ -200,8 +198,6 @@ class GUI_OctaveRange(PlusMinusButtons):
                 if index - 1 >= 0:
                     key = int(keys[index - 1])
                     self.value = key
-
-        # return super().set_value(value)
 
 
 class GUI_Subdivions(PlusMinusButtons):
@@ -210,9 +206,6 @@ class GUI_Subdivions(PlusMinusButtons):
         """
         This method only allows values the match the tuples list in the dictionary
         """
-        # if value == self.value:
-        #     # No change in the current value
-        #     pass
         if value > self.value:
             # The values here increase only by one step. Since the 
             # values are pulled from a dictionary, the key
@@ -223,6 +216,7 @@ class GUI_Subdivions(PlusMinusButtons):
                 if index + 1 < len(keys):
                     key = int(keys[index + 1])
                     self.value = key
+                    
         elif value < self.value:
             if str(self.value) in BPM_SUBDIVISIONS.keys():
                 keys = list(BPM_SUBDIVISIONS)
@@ -230,8 +224,6 @@ class GUI_Subdivions(PlusMinusButtons):
                 if index - 1 >= 0:
                     key = int(keys[index - 1])
                     self.value = key
-
-        # return super().set_value(self.value)
     
     def get_value_constant(self):
         # The current value is tied to a dictionary in the constants.py

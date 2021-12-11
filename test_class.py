@@ -4,8 +4,7 @@ import time
 from lib.df_logging import data_frame_logger
 from lib.cv_screen import Screen
 from lib.geometry_utility import *
-from lib.plus_minus_octave_base import PlusMinusBase
-from lib.plus_minus_subdivisions import PlusMinusSubdivions
+from lib.gui_elements import GUI_OctaveBase, GUI_Subdivions
 from lib import *
 import cv2
 
@@ -35,65 +34,64 @@ def test_df_logging():
     task = asyncio.run(df_logging())
     
 def test_plus_minus():
-    pmb = PlusMinusBase(
+    pmb = GUI_OctaveBase(
             x=1000, y=550, label="8ve base", label_offset_x=840, visible=False)
 
-    x = pmb.get_current_value()
-    y = pmb.get_current_value_constant()
+    x = pmb.get_value()
+    y = pmb.get_value_constant()
     print(x)
 
 def test_plus_minus_subdivsions():
-    pms = PlusMinusSubdivions(
+    pms = GUI_Subdivions(
             x=1000, y=550, label="8ve base", label_offset_x=840, visible=False) 
     
-    pms.set_current_value(1)
-    print(pms.get_current_value_constant())
+    pms.set_value(1)
+    print(pms.get_value_constant())
 
-    pms.set_current_value(2)
-    pms.get_current_value
-    print(pms.get_current_value(), pms.get_current_value_constant())
+    pms.set_value(2)
+    pms.get_value
+    print(pms.get_value(), pms.get_value_constant())
 
-    pms.set_current_value(3)
-    print(pms.get_current_value(), pms.get_current_value_constant())
+    pms.set_value(3)
+    print(pms.get_value(), pms.get_value_constant())
 
-    pms.set_current_value(4)
-    print(pms.get_current_value(), pms.get_current_value_constant())
+    pms.set_value(4)
+    print(pms.get_value(), pms.get_value_constant())
 
-    pms.set_current_value(6)
-    print(pms.get_current_value(), pms.get_current_value_constant())
+    pms.set_value(6)
+    print(pms.get_value(), pms.get_value_constant())
 
-    pms.set_current_value(8)
-    print(pms.get_current_value(), pms.get_current_value_constant())
+    pms.set_value(8)
+    print(pms.get_value(), pms.get_value_constant())
 
-    pms.set_current_value(12)
-    print(pms.get_current_value(), pms.get_current_value_constant())
+    pms.set_value(12)
+    print(pms.get_value(), pms.get_value_constant())
 
-    pms.set_current_value(16)
-    print(pms.get_current_value(), pms.get_current_value_constant())
+    pms.set_value(16)
+    print(pms.get_value(), pms.get_value_constant())
     
-    pms.set_current_value(15)
-    print(pms.get_current_value(), pms.get_current_value_constant())
+    pms.set_value(15)
+    print(pms.get_value(), pms.get_value_constant())
 
-    pms.set_current_value(12)
-    print(pms.get_current_value(), pms.get_current_value_constant())
+    pms.set_value(12)
+    print(pms.get_value(), pms.get_value_constant())
 
-    pms.set_current_value(9)
-    print(pms.get_current_value(), pms.get_current_value_constant())
+    pms.set_value(9)
+    print(pms.get_value(), pms.get_value_constant())
 
-    pms.set_current_value(9)
-    print(pms.get_current_value(), pms.get_current_value_constant())
+    pms.set_value(9)
+    print(pms.get_value(), pms.get_value_constant())
 
-    pms.set_current_value(4)
-    print(pms.get_current_value(), pms.get_current_value_constant())
+    pms.set_value(4)
+    print(pms.get_value(), pms.get_value_constant())
 
-    pms.set_current_value(4)
-    print(pms.get_current_value(), pms.get_current_value_constant())
+    pms.set_value(4)
+    print(pms.get_value(), pms.get_value_constant())
 
-    pms.set_current_value(4)
-    print(pms.get_current_value(), pms.get_current_value_constant())
+    pms.set_value(4)
+    print(pms.get_value(), pms.get_value_constant())
     
 def test_ui_loop():
-
     screen = Screen()
     while True:
         if screen:
@@ -113,12 +111,12 @@ def test_ui_loop():
                 header = screen.overlayList[screen.header_index]
                 # Determine what controllers to display in the GUI.
                 if screen.header_index == 0:
-                    screen.hide_settings_controls()
-                    img = screen.draw_run_controls(img)
+                    screen.hide_settings_gui()
+                    img = screen.draw_performance_gui(img)
                     
                 else:
-                    screen.hide_run_controls()
-                    img = screen.draw_settings_controls(img)
+                    screen.hide_performance_gui()
+                    img = screen.draw_settings_gui(img)
                     
                 assert isinstance(header, object)
                 
@@ -132,12 +130,7 @@ def test_ui_loop():
                 if screen.switch_delay > 500:
                     screen.switch_delay = 0
 
-
-    subdiviion = screen.plus_minus_subdivision.get_current_value()
-    bpm = screen.bpm_slider.get_bpm()
-
 if __name__ == "__main__":
-    
     test_ui_loop()
     
     

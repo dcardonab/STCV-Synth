@@ -151,9 +151,9 @@ class Screen:
                 fps = 1 / (self.cTime - self.pTime)
                 self.pTime = self.cTime
 
-            cv2.putText(
-                img, f"FPS: {int(fps)}", (400, 70), cv2.FONT_HERSHEY_PLAIN, 3, (255, 0, 0), 2
-            )
+                cv2.putText(
+                    img, f"FPS: {int(fps)}", (400, 70), cv2.FONT_HERSHEY_PLAIN, 3, (255, 0, 0), 2
+                )
             
             # Display image in the screen context.
             cv2.imshow("Image", img)
