@@ -22,8 +22,10 @@
 
 ## CV
 
-* Connect GUI controls to the synth.
+* Connect GUI controls to the synth:
     * Scale selection.
-    * Change base.
-    * Change octave range.
+    * Octave base.
+    
+* Reduce GUI buttons sensitivity
+
 * Use the ST hand detection to only detect the other hand for polyphony, and the ST hand for GUI operation.
