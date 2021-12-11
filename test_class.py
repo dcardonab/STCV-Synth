@@ -2,9 +2,9 @@ import pytest
 import asyncio
 import time
 from lib.df_logging import data_frame_logger
-from lib.screen import Screen
+from lib.cv_screen import Screen
 from lib.geometry_utility import *
-from lib.plus_minus_base import PlusMinusBase
+from lib.plus_minus_octave_base import PlusMinusBase
 from lib.plus_minus_subdivisions import PlusMinusSubdivions
 from lib import *
 import cv2

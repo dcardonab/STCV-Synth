@@ -1,10 +1,13 @@
-import numpy as np
+# Python Libraries
 import os
-from pyo import *
 from sys import platform
 from typing import Union
 
-# Local files
+# Third-Party Libraries
+import numpy as np
+from pyo import *
+
+# Local Files
 from constants import *
 
 
@@ -18,7 +21,7 @@ class Synth():
             self.osc
 
         Settings properties:
-            self.cur_base       # As it relates to base_mult_options
+            self.cur_base       # As it relates to BASE_MULT_OPTIONS
             self.cur_tonal_center
             self.base_hz
             self.oct_range
@@ -83,7 +86,7 @@ class Synth():
         # The filter will take in the oscillator at the input, and its
         # frequency will depend upon movement in the ST tilt.
         # MoogLP filter is a 4th orden Low-Pass Filter i.e., 24dB per octave.
-        self.filt = MoogLP(self.osc_root)
+        self.filt = MoogLP(self.osc_root, freq=1000)
 
         self.delay = Delay(self.filt, self.bpm / 16, 0.8)
 
@@ -96,7 +99,10 @@ class Synth():
 
         # Initialize reverb to enhance the audio signal. The balance will be
         # controlled by the Azimuth angle from the ST.
-        self.reverb = Freeverb(self.mixer[0], size=0.8, damp=0.8, bal=0.5).out()
+        # The 'out()' method routes the given module to the DAC.
+        self.reverb = Freeverb(
+            self.mixer[0], size = 0.8, damp = 0.8, bal = 0.5
+        ).out()
 
     def play(self) -> None:
         """
@@ -115,11 +121,11 @@ class Synth():
         multiplying a tonal center (frequency) with a base multiplier, which
         sets the lowest accessible frequency.
         """
-        # base_mult_options values are tuples containing the base multiplier,
+        # BASE_MULT_OPTIONS values are tuples containing the base multiplier,
         # as well as the maximum octave range available for that base.
-        self.cur_base = base_mult_options[mult]
+        self.cur_base = BASE_MULT_OPTIONS[mult]
         self.cur_tonal_center = tonal_cntr
-        self.base_hz = tonal_center_options[tonal_cntr] * self.cur_base[0]
+        self.base_hz = TONAL_CENTER_OPTIONS[tonal_cntr] * self.cur_base[0]
 
     def set_osc_freq(self, scale_step: int) -> None:
         """
@@ -162,7 +168,7 @@ class Synth():
         # structure of the scale as a np.array matching the scale structure,
         # with extended number of steps to match the number of octaves.
         self.scale = (scale, np.hstack(
-            [np.hstack(scales[scale]) + i * 12 for i in range(self.oct_range)]
+            [np.hstack(SCALES[scale]) + i * 12 for i in range(self.oct_range)]
         ))
 
     def set_bpm(self, bpm: Union[int, float] = DEF_BPM) -> None:
@@ -173,19 +179,19 @@ class Synth():
         """
         self.bpm = 60 / bpm
 
-    def set_subdivision(self, sub_division: str = DEF_SUBDIVISION) -> None:
+    def set_subdivision(self, subdivision: str = DEF_SUBDIVISION) -> None:
         """
         Method sets the sub-division that will be applied to the BPM when
         setting the pulse rate of the synthesizer.
         """
-        self.sub_division = sub_division
+        self.subdivision = subdivision
 
     def set_pulse_rate(self) -> None:
         """
         The pulse rate is effectively the implemented subdivision of
         the synthesizer's BPM.
         """
-        self.pulse_rate = self.bpm / bpm_sub_divisions[self.sub_division]
+        self.pulse_rate = self.bpm / BPM_SUBDIVISIONS[self.subdivision]
 
     """
     SELECT SETTINGS
@@ -217,22 +223,22 @@ class Synth():
         else:
             # Set the synthesizer frequency base (i.e., tonal center)
             print("\n\tSelect tonal center (use letters)")
-            [print(f"\t\t{k}:\t{v}") for k, v in tonal_center_options.items()]
+            [print(f"\t\t{k}:\t{v}") for k, v in TONAL_CENTER_OPTIONS.items()]
             print(f"\tUnavailable inputs default to {DEF_TONAL_CENTER}.")
             tonal_center = input("\n\tTonal Center: ").capitalize()
-            if tonal_center not in tonal_center_options:
+            if tonal_center not in TONAL_CENTER_OPTIONS:
                 tonal_center = DEF_TONAL_CENTER
 
             # Set the base multiplier
             print("\n\tSelect base multiplier (select numeric option):")
             [
                 print(f"\t\t{k}: Multiplier:\t{v[0]}\tMax 8ve range:\t{v[1]}") 
-                for k, v in base_mult_options.items()
+                for k, v in BASE_MULT_OPTIONS.items()
             ]
             print(f"\tUnavailable inputs default to option \
                 {DEF_BASE_MULTIPLIER}")
             base_mult = input("\n\tBase Multiplier: ")
-            if base_mult not in base_mult_options:
+            if base_mult not in BASE_MULT_OPTIONS:
                 base_mult = DEF_BASE_MULTIPLIER
 
             self.set_base(tonal_center, base_mult)
@@ -249,13 +255,13 @@ class Synth():
 
             # Set subdivision for pulse rate
             print("\tAvailable sub-division options:")
-            [print(f"\t\t{k}: {v}") for k, v in sub_division_options.items()]
+            [print(f"\t\t{k}: {v}") for k, v in SUBDIVISION_OPTIONS.items()]
             print(f"\tUnavailable inputs default to \
-                {sub_division_options[DEF_SUBDIVISION]}.")
+                {SUBDIVISION_OPTIONS[DEF_SUBDIVISION]}.")
 
-            sub_div = input("\n\tSelect sub-division option (use index): ")
-            if sub_div in bpm_sub_divisions.keys():
-                self.set_subdivision(sub_div)
+            subdivision = input("\n\tSelect subdivision option (use index): ")
+            if subdivision in BPM_SUBDIVISIONS.keys():
+                self.set_subdivision(subdivision)
             else:
                 self.set_subdivision()
 
@@ -273,13 +279,13 @@ class Synth():
         """
         # Display available scales to the user.
         print("\n\tIndex of scales")
-        [print(f"\t\t{k}") for k in scales.keys()]
+        [print(f"\t\t{k}") for k in SCALES.keys()]
 
         # Prompt user to choose a scale.
         while True:
             scale = input("\n\tSelect your scale (type the name): ").lower()
             # Verify that their selected scale is an available scale.
-            if scale in scales.keys():
+            if scale in SCALES.keys():
                 break
             else:
                 print("Please input the name of an available scale.")
@@ -310,7 +316,7 @@ class Synth():
         print(f"\tOctave Range: {self.oct_range}")
         print(f"\tScale Structure: {self.scale[1]}")
         print(f"\n\tBPM = Quarter Note {60 / self.bpm}")
-        print(f"\tSub-Division = {sub_division_options[self.sub_division]}")
+        print(f"\tSub-Division = {SUBDIVISION_OPTIONS[self.subdivision]}")
         print(f"\tPulse rate = {self.pulse_rate:.2f} seconds")
 
     """

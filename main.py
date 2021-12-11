@@ -1,13 +1,16 @@
+# Python Libraries
 import asyncio
-import numpy as np
 import signal
 import sys
-import time 
 
+# Third-Party Libraries
+import numpy as np
+
+# Local Files
 sys.path.append('lib')
 from lib.constants import *
+from lib.cv_screen import *
 from lib.df_logging import *
-from lib.screen import *
 from lib.st_ble import *
 from lib.synth import *
 
@@ -68,14 +71,22 @@ async def main():
     if x.lower() == "y":
         print("\n\tInitializing OpenCV\n")
         screen = Screen()
+
+        # Wait for OpenCV to initialize.
+        await asyncio.sleep(1)
+
+        y = input("\n\tWould you like to display FPS? (y/n) ")
+        show_FPS = True if y.lower() == "y" else False
+
+        # Set initial GUI values to match the Synth settings.
         screen.bpm_slider.set_bpm(int(60 / synth.bpm))
-        screen.plus_minus_subdivision.init_value(int(synth.sub_division))
+        screen.subdivision_plus_minus.set_init_value(int(synth.subdivision))
     else:
         screen = False
 
     # Wait for three seconds to prevent printed lines from getting into
     # other routines.
-    await asyncio.sleep(1)
+    
 
     """
     PRE-PERFORMANCE
@@ -87,14 +98,14 @@ async def main():
         # Enable notifications of SensorTile data and create logger for
         # DataFrames containing SensorTile data from each activated handle.
 
-        # await sensor_tile.start_notification(ST_handles['environment'])
+        # await sensor_tile.start_notification(ST_HANDLES['environment'])
         # environment_dfl = data_frame_logger(f"{out_path}_environment.csv")
 
-        await sensor_tile.start_notification(ST_handles['motion'])
+        await sensor_tile.start_notification(ST_HANDLES['motion'])
         motion_dfl = data_frame_logger(f"{out_path}_motion.csv")
 
-        await sensor_tile.start_notification(ST_handles['quaternions'])
-        quaternions_dfl = data_frame_logger(f"{out_path}_quaternions.csv")
+        # await sensor_tile.start_notification(ST_HANDLES['quaternions'])
+        # quaternions_dfl = data_frame_logger(f"{out_path}_quaternions.csv")
 
 
     # Start recording of the new audio file.
@@ -119,9 +130,9 @@ async def main():
             motion_dataframe = motion_dfl.new_record(motion)
             await motion_dfl.add_record(motion_dataframe)
 
-            quaternions = await sensor_tile.quaternions_data.get()
-            quaternions_dataframe = quaternions_dfl.new_record(quaternions)
-            await quaternions_dfl.add_record(quaternions_dataframe)
+            # quaternions = await sensor_tile.quaternions_data.get()
+            # quaternions_dataframe = quaternions_dfl.new_record(quaternions)
+            # await quaternions_dfl.add_record(quaternions_dataframe)
 
             """
             Set Synth values from ST motion data.
@@ -169,50 +180,19 @@ async def main():
         # Read image from the camera for processing and displaying it.
         # This includes all visual GUI controls.
         if screen:
-            # Import the image
-            _, img = screen.cap.read()
-            img = cv2.flip(img, 1)
-
-            # Find hand landmarks (i.e., nodes)
-            img = screen.detector.findHands(img=img, draw=False)
-            for handNumber in range(screen.detector.handCount()):
-                # lmList is a list of all landmarks present in the screen.
-                lmList = screen.detector.find_position(
-                    img, hand_number=handNumber, draw=True
-                )
-                img = screen.event_processing(img, lmList)
-
-            header = screen.overlayList[screen.header_index]
-            # Determine what controllers to display in the GUI.
-            if screen.header_index == 0:
-                screen.hide_settings_controls()
-                img = screen.draw_run_controls(img)
-                
-            else:
-                screen.hide_run_controls()
-                img = screen.draw_settings_controls(img)
-                
-            assert isinstance(header, object)
-            
-            img[0: header.shape[0], 0: header.shape[1]] = header
-            
-            cv2.imshow("Image", img)
-            cv2.waitKey(1)
-
-            # Provision to prevent the toggle from staying engaged
-            screen.switch_delay += 1
-            if screen.switch_delay > 500:
-                screen.switch_delay = 0
+            # Update Octave Range GUI control in case it exceeded the maximum
+            # for the selected base.
+            screen.CV_loop(show_FPS)
         
-            # Update Synth parameters based on CV controllers
+            # Update Synth parameters based on CV controllers.
             if synth.bpm != 60 / screen.bpm_slider.BPM:
                 synth.set_bpm(screen.bpm_slider.BPM)
                 synth.set_pulse_rate()
 
-            if int(synth.sub_division) != \
-               screen.plus_minus_subdivision.current_value:
+            if int(synth.subdivision) != \
+               screen.subdivision_plus_minus.value:
                 synth.set_subdivision(
-                    str(screen.plus_minus_subdivision.current_value)
+                    str(screen.subdivision_plus_minus.value)
                 )
                 synth.set_pulse_rate()
 
@@ -222,7 +202,7 @@ async def main():
         scale_step = np.random.choice(synth.scale[1])
         synth.set_osc_freq(scale_step)
         synth.play()
-        time.sleep(synth.pulse_rate)
+        await asyncio.sleep(synth.pulse_rate)
 
         if keyboard_interrupt_event.is_set():
             break
@@ -240,14 +220,14 @@ async def main():
     if ST_address:
         # Stop notification characteristics and write logs to .csv files.
 
-        # await sensor_tile.stop_notification(ST_handles['environment'])
+        # await sensor_tile.stop_notification(ST_HANDLES['environment'])
         # await environment_dfl.write_log()
 
-        await sensor_tile.stop_notification(ST_handles['motion'])
+        await sensor_tile.stop_notification(ST_HANDLES['motion'])
         await motion_dfl.write_log()
 
-        await sensor_tile.stop_notification(ST_handles['quaternions'])
-        await quaternions_dfl.write_log()
+        # await sensor_tile.stop_notification(ST_HANDLES['quaternions'])
+        # await quaternions_dfl.write_log()
 
         # Disconnect from ST.
         await sensor_tile.BLE_disconnect()

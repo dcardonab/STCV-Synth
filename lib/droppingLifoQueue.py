@@ -33,4 +33,3 @@ class droppingLifoQueue(asyncio.LifoQueue):
         # Since the put_nowait declared above never raises QueueFull,
         # it can be called directly
         self.put_nowait(item)
-

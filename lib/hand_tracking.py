@@ -1,4 +1,4 @@
-import time
+# Third-Party Libraries
 import cv2
 import mediapipe as mp
 

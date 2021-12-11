@@ -47,6 +47,9 @@ On the STCV-Synth root folder, run: `python main.py`
 * Numpy
     * [Numpy Math Fuctions](https://numpy.org/doc/stable/reference/routines.math.html)
 
+* OpenCV
+    * [Video Capture](https://docs.opencv.org/4.x/d8/dfe/classcv_1_1VideoCapture.html#a473055e77dd7faa4d26d686226b292c1)
+
 * Orientation
     * [3-DOF Orientation Tracking - Stanford](https://stanford.edu/class/ee267/notes/ee267_notes_imu.pdf)
     * [Orientation from Acceleration](https://wiki.dfrobot.com/How_to_Use_a_Three-Axis_Accelerometer_for_Tilt_Sensing)
@@ -61,3 +64,33 @@ On the STCV-Synth root folder, run: `python main.py`
 
 * General
     * [Scale one range to another](https://stackoverflow.com/questions/4154969/how-to-map-numbers-in-range-099-to-range-1-01-0/33127793)
+
+
+# Further Goals
+
+* Add provisions for real-time OpenCV execution. (Potentially using Docker and/or other processes enabled by RabbitMQ)
+
+* Add event handler
+    * Set 'esc' key for quitting the program.
+    * Set 'p' key for triggering a pause state.
+
+* Add modes of operation based on automatic controller detection upon launch.
+
+* Create shell script for flashing binaries.
+
+* Verify Quaternion computations (i.e., usage of Real value *w*)
+
+* Verify value interpolation in Pyo when updating ADSR 'mul' within a loop.
+
+* Decouple ST async Queues for real-time improvements.
+
+* Video Synth (potentially use PyOpenGL + shaders for GPU execution)
+
+* Add data analysis visualization tools (potentially use MatPlotLib and/or Seaborn)
+
+* Add new musical gestures
+    * Switch chord type, e.g., major, minor, suspended, augmented, diminished, etc. (this might be quite complicated because of scales are defined in such a way that the data gets quantizes to specific scale steps).
+
+    * Switch chord inversion: assuming a C major chord (with notes C, E, and G), the chord is said to be in its fundamental position when the lowest note is C; it is said to be in first inversion if the bottom note is E (E, G, and C); and it is said to be in second inversion if the bottom note is G (G, C, and E). All of these permutations reflect the same major chord.
+
+    * Add/Remove audio effects.

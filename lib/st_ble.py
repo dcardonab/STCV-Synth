@@ -1,13 +1,15 @@
+# Python Libraries
 from struct import unpack_from
 from sys import platform
 from typing import Union
 
+# Third-Party Libraries
 from bleak import BleakClient, BleakError, BleakScanner
 import numpy as np
 
-from constants import ST_handles
+# Local Files
+from constants import ST_FIRMWARE_NAME
 from droppingLifoQueue import droppingLifoQueue
-from lib.constants import ST_FIRMWARE_NAME
 
 
 class SensorTile():
@@ -249,8 +251,6 @@ class SensorTile():
             )),
             2
         )
-
-        # print(f"roll: {quat_data['roll']}\tpitch: {quat_data['pitch']}\tyaw: {quat_data['yaw']}", end='\r', flush=True)
 
         self.quat_w = q[0]
         

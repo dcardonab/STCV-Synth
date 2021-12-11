@@ -1,20 +1,23 @@
+# Python Libraries
+from typing import Tuple
+
+# Third-Party Libraries
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 
-point = Point(0.5, 0.5)
 
-
-def create_rectangle_array(pt1, pt2):
+def create_rectangle_array(
+    pt1: Tuple[int, int], pt2: Tuple[int, int]) -> list:
     """
     This method takes two points and extracts a polygon 
     boundary from it
     """
-    points = []
-    points.append((pt1[0], pt1[1]))
-    points.append((pt1[0], pt2[1]))
-    points.append((pt2[0], pt2[1]))
-    points.append((pt2[0], pt1[1]))
-    return points
+    return [
+        (pt1[0], pt1[1]),
+        (pt1[0], pt2[1]),
+        (pt2[0], pt2[1]),
+        (pt2[0], pt1[1])
+    ]
 
 def polygon_bounds(polygon_array):
     polygon = Polygon(polygon_array)

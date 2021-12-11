@@ -1,12 +1,6 @@
-# Synthesizer defaults
-DEF_BASE_MULTIPLIER = '4'
-DEF_BPM = 100
-DEF_SUBDIVISION = '16'
-DEF_NUM_OCTAVES = 2
-DEF_SCALE = 'dorian'
-DEF_TONAL_CENTER = 'A'
-
-# ST Constants
+"""
+SensorTile Constants
+"""
 ST_FIRMWARE_NAME = 'AM1V310'
 
 # Accelerometer magnitude range
@@ -21,8 +15,37 @@ MAX_TILT = 180
 MIN_AZIMUTH = -180
 MAX_AZIUMTH = 180
 
+# SensorTile GATT Handles
+ST_HANDLES = {
+    "environment": 13,
+    "motion": 16,
+    "quaternions": 28
+}
+
+# Hand wearing the ST
+ST_WEARING_HAND = {
+    "Left": 0,
+    "Right": 1
+}
+
+"""
+Synthesizer Constants
+"""
+DEF_BASE_MULTIPLIER = '1'
+DEF_BPM = 100
+DEF_SUBDIVISION = '16'
+DEF_NUM_OCTAVES = 2
+DEF_SCALE = 'dorian'
+DEF_TONAL_CENTER = 'A'
+
+# Performance Mode
+SYNTH_MODE = {
+    "Pulse": 0,
+    "Sustain": 1
+}
+
 # Tempered Scales
-scales = {
+SCALES = {
     # Diatonic Modes
     "ionian": [0, 2, 4, 5, 7, 9, 11],
     "dorian": [0, 2, 3, 5, 7, 9, 10],
@@ -45,7 +68,7 @@ scales = {
 }
 
 # BPM sub-divisions
-bpm_sub_divisions = {
+BPM_SUBDIVISIONS = {
     "1": 0.25,
     "2": 0.5,
     "3": 0.75,
@@ -56,7 +79,7 @@ bpm_sub_divisions = {
     "16": 4,
 }
 
-sub_division_options = {
+SUBDIVISION_OPTIONS = {
     "1": "Whole Notes",
     "2": "Half Notes",
     "3": "Half Note Triplet",
@@ -68,7 +91,7 @@ sub_division_options = {
 }
 
 # Music Key and Multiplier Options
-tonal_center_options = {
+TONAL_CENTER_OPTIONS = {
     "A": 110,
     "A#": 116.54,
     "Bb": 116.54,
@@ -90,19 +113,12 @@ tonal_center_options = {
 
 # Each key holds a tuple containing the base multiplier
 # and the maximum octave range for that multiplier.
-base_mult_options = {
-    "1": (0.25, 7),
-    "2": (0.5, 6),
-    "3": (1, 5),
-    "4": (2, 4),
-    "5": (4, 3),
-    "6": (8, 2),
-    "7": (16, 1),
-}
-
-# SensorTile GATT Handles
-ST_handles = {
-    "environment": 13,
-    "motion": 16,
-    "quaternions": 28
+BASE_MULT_OPTIONS = {
+    "-2": (0.25, 7),
+    "-1": (0.5, 6),
+    "0": (1, 5),
+    "1": (2, 4),
+    "2": (4, 3),
+    "3": (8, 2),
+    "4": (16, 1),
 }
