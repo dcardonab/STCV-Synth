@@ -40,8 +40,8 @@ DEF_TONAL_CENTER = 'A'
 
 # Performance Mode
 SYNTH_MODE = {
-    "Pulse": 0,
-    "Sustain": 1
+    "pulse": 0,
+    "sustain": 1
 }
 
 # Tempered Scales

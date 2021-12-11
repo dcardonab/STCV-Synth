@@ -81,6 +81,12 @@ async def main():
         # Set initial GUI values to match the Synth settings.
         screen.bpm_slider.set_bpm(int(60 / synth.bpm))
         screen.subdivision_plus_minus.set_init_value(int(synth.subdivision))
+        # The tuple contained in scales holds the name of the scale as its
+        # first value, and the structure of the scale as its second value.
+        screen.scales_menu.init_value(synth.scale[0])
+        screen.pulse_sustain_menu.init_value(list(SYNTH_MODE.keys())[0])
+        screen.st_wearing_hand_menu.init_value(list(ST_WEARING_HAND.keys())[0])
+
     else:
         screen = False
 
@@ -215,6 +221,10 @@ async def main():
                 # Apply new octave range to the scale. The first value of
                 # the scale tuple contains the name of the scale.
                 synth.set_scale(synth.scale[0])
+
+            # Update synth scale if it changed in the GUI.
+            if synth.scale[0] != screen.scales_menu.get_value():
+                synth.set_scale(screen.scales_menu.get_value())
 
         # Update synth values. Numpy random module is used as opposed
         # to Python's 'random' library, since Numpy will compute random

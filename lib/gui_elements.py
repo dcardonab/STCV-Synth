@@ -136,7 +136,7 @@ class PlusMinusButtons:
                 )
                 # Decrease value if there was a collision.
                 if point_intersects(point, bounding_box):
-                    self.value -= 1
+                    self.set_value(self.value - 1)
 
     def plus_btn_click(self, x, y):
         """
@@ -155,7 +155,7 @@ class PlusMinusButtons:
                 )
                 # Increase value if there was a collision.
                 if point_intersects(point, bounding_box):
-                    self.value += 1
+                    self.set_value(self.value + 1)
 
 
 class GUI_OctaveBase(PlusMinusButtons):
@@ -175,11 +175,12 @@ class GUI_OctaveBase(PlusMinusButtons):
 
 
 class GUI_Subdivions(PlusMinusButtons):
-    
-    def set_value(self, value):
-        """
-        This method only allows values the match the tuples list in the dictionary
-        """
+    """
+    This class overrides the 'set_value()' method in order to map the
+    subdivision values to the value declared in the 'BPM_SUBDIVISIONS' dict.
+    The plus and minus buttons will change the selected dictionary value.
+    """
+    def set_value(self, value: int) -> None:
         if value > self.value:
             # The values here increase only by one step. Since the 
             # values are pulled from a dictionary, the key
@@ -198,35 +199,6 @@ class GUI_Subdivions(PlusMinusButtons):
                 if index - 1 >= 0:
                     key = int(keys[index - 1])
                     self.value = key
-    
-    def get_value_constant(self):
-        # The current value is tied to a dictionary in the constants.py
-        # Only values from that dictionary can be set
-        value = self.get_value()    
-        if str(value) in BPM_SUBDIVISIONS.keys():
-            return BPM_SUBDIVISIONS[str(value)]
-
-    def minus_btn_click(self, x, y):
-        # Becasue the count factor changed, this method needs to be overriden.
-        if self.visible:
-            if self.min_value < self.value:
-                point = Point(x, y)
-                bounding_box = create_rectangle_array(
-                    (self.x1, self.y1), (self.x2, self.y2)
-                )
-                if point_intersects(point, bounding_box):
-                    self.set_value(self.value - 1)
-
-    def plus_btn_click(self, x, y):
-        # Becasue the count factor changed, this method needs to be overriden.
-        if self.visible:
-            if self.max_value > self.value:
-                point = Point(x, y)
-                bounding_box = create_rectangle_array(
-                    (self.x1 + 100, self.y1), (self.x2 + 100, self.y2)
-                )
-                if point_intersects(point, bounding_box):
-                    self.set_value(self.value + 1)
 
 
 class Menu:
@@ -235,69 +207,79 @@ class Menu:
         menu_dictionary: dict,
         alpha: float = 0.7,
         btm_text_color: Tuple[int, int, int] = (0, 255, 0),
+        columns: int = 1, rows: int = 2,
         visible: bool = True
     ) -> None:
         self.x = x
         self.y = y
         self.alpha = alpha      # Opacity.
         self.btm_text_color = btm_text_color
-        self.column_number = 2
-        self.row_number = 8
+        self.columns = columns
+        self.rows = rows
         self.visible = visible
-        self.menu_dictionary = menu_dictionary
-        self.menu_grid_dictionary = {}
-        self.selected_item = None
+        self.menu_items = menu_dictionary
+        self.menu_items_coordinates = {}
+        self.value = None
 
-    def set_column_number(self, column_number: int) -> None:
-        self.column_number = column_number
+        self.init_menu_items_coordinates()
 
-    def set_row_number(self, row_number: int) -> None:
-        # Sets the maximum row count for the menu item
-        self.row_number = row_number
+    def get_value(self) -> str:
+        return list(self.value.keys())[0]
 
-    def get_menu_grid_dictionary(self) -> dict:
-        # Creates a matrix of the menu grid.
-        return self.menu_grid_dictionary
-
-    def get_selected_item(self) -> str:
-        return self.selected_item
+    def init_value(self, value: str) -> None:
+        self.value = { value: self.menu_items_coordinates[value] }
 
     def set_visible(self, visible: bool = True) -> bool:
         # Sets the controls to make visible or not
         self.visible = visible
 
-    def get_visible(self) -> bool:
-        """
-        Returns whether the control will be rendered or not
-        """
-        return self.visible
-
-    def menu_item_clicked(self, x: int, y: int) -> None:
+    def set_value(self, x: int, y: int) -> None:
         # Processes menu click if it occurs
         if self.visible:
-            if self.menu_grid_dictionary:
-                for item in self.menu_grid_dictionary:
-                    rectangle = self.menu_grid_dictionary[item]
-                    if point_intersects((x, y), rectangle):
-                        self.selected_item = {item: rectangle}
-                        break
+            for item in self.menu_items_coordinates:
+                rectangle = self.menu_items_coordinates[item]
+                if point_intersects((x, y), rectangle):
+                    self.value = { item: rectangle }
+                    break
 
-    def draw_sub_item(self, x: int, y: int, scale_name: str, overlay_img):
-        # Creates individual menu items base on dictionary
-        if self.selected_item:
-            if scale_name in self.selected_item:
-                cv2.rectangle(
-                    overlay_img,
-                    self.selected_item[scale_name][0],
-                    self.selected_item[scale_name][2],
-                    (255, 255, 255),
-                    cv2.FILLED,
-                )
+    def draw(self, img):
+        if not self.visible:
+            return img
+
+        # Create an overlay image to place buttons on
+        overlay = img.copy()
+
+        for item in self.menu_items.keys():
+            overlay = self.draw_item(
+                self.menu_items_coordinates[item][0],
+                self.menu_items_coordinates[item][2],
+                item, overlay
+            )
+
+        image_new = cv2.addWeighted(
+            overlay, self.alpha, img, 1 - self.alpha, 0
+        )
+
+        return image_new
+
+    def draw_item(
+        self,
+        top_left: Tuple[int, int], btm_right: Tuple[int, int],
+        item: str, overlay_img
+    ):
+        if item in self.value:
+            cv2.rectangle(
+                overlay_img,
+                self.value[item][0],
+                self.value[item][2],
+                (255, 255, 255),
+                cv2.FILLED,
+            )
 
         cv2.putText(
             overlay_img,
-            scale_name,
-            (x, y),
+            item,
+            top_left,
             cv2.FONT_HERSHEY_SIMPLEX,
             1,
             self.btm_text_color,
@@ -305,79 +287,37 @@ class Menu:
             cv2.LINE_AA,
         )
 
-        self.menu_grid_dictionary[scale_name] = create_rectangle_array(
-            (x, y + 5), (x + 240, y - 50)
-        )
         cv2.rectangle(
-            overlay_img, (x, y + 5), (x + 240, y - 50), self.btm_text_color, 1
+            overlay_img, top_left, btm_right, self.btm_text_color, 1
         )
 
         return overlay_img
 
-    def draw(self, img):
-        if not self.get_visible():
-            return img
+    def init_menu_items_coordinates(self):
+        """
+        Add screen coordinates for each element in the menu.
+        """
+        # Init X and Y for creating menu items
+        x = self.x
+        y = self.y
 
-        # Create an overlay image to place buttons on
-        overlay = img.copy()
+        row = 0
+        column = 0
+        for item in self.menu_items.keys():
+            if column < self.columns and row >= self.rows:
+                row = 0
+                x += 250
+                y = self.y
 
-        current_y = self.y
-        current_x = self.x
-
-        current_row = 0
-        for scale_name in self.menu_dictionary.keys():
-            if self.column_number > 1 and current_row >= self.row_number:
-                current_x += 250
-                current_row = 0
-                current_y = self.y
-
-            overlay = self.draw_sub_item(
-                current_x, current_y, scale_name, overlay
+            self.menu_items_coordinates[item] = create_rectangle_array(
+                (x, y + 5), (x + 240, y - 50)
             )
-            current_y += 70
-            current_row += 1
 
-        image_new = cv2.addWeighted(overlay, self.alpha, img, 1 - self.alpha, 0)
+            y += 70
+            row += 1
 
-        if self.selected_item is None:
-            self.menu_item_clicked(self.x + 10, self.y - 5)
-
-        return image_new
-
-
-class ScaleMenu(Menu):
-    # Via inheritance, we are simply supplying the current scale value
-    # Scale returns as a dictionary with a single value key (such as ionian)
-    # and the scale values (such as [0, 2, 4, 5, 7, 9, 11])
-    def __init__(
-        self, x: int, y: int,
-        menu_dictionary: dict,
-        alpha: float = 0.7,
-        btm_text_color: Tuple[int, int, int] = (0, 255, 0),
-        visible: bool = True
-    ) -> None:
-
-        super().__init__(x, y, menu_dictionary, alpha=alpha,
-            btm_text_color=btm_text_color, visible=visible
-        )
-        self.current_scale = None
-    
-    def get_current_scale(self):
-        return self.current_scale
-
-    # Overriding this method to capture and return the scale values
-    def menu_item_clicked(self, x, y):
-        # Processes menu click if it occurs
-        if self.visible:
-            if self.menu_grid_dictionary:
-                for item in self.menu_grid_dictionary:
-                    rectangle = self.menu_grid_dictionary[item]
-                    if point_intersects((x, y), rectangle):
-                        self.selected_menu_item = {item: rectangle}
-                        if item in SCALES.keys():
-                            self.current_scale = {item: SCALES[item]}
-                        break
-            return super().menu_item_clicked(x, y)
+            if row == self.rows - 1:
+                column += 1
 
 
 class Slider:
@@ -412,13 +352,19 @@ class Slider:
         self.BPM = bpm
 
     def draw_controls(self, img):
-        '''
+        """
         draw_controls drawing to layout the slider control
         :param img: 
         :return: img (opencv image)
-        '''
+        """
         # Create a containing  retangle
-        cv2.rectangle(img, (self.x1, self.y1), (self.x2, self.y2), (192, 84, 80), 3)
+        cv2.rectangle(
+            img,
+            (self.x1, self.y1),
+            (self.x2, self.y2),
+            (192, 84, 80),
+            3
+        )
 
         # Create a rectangle that displays the current setting
         cv2.rectangle(

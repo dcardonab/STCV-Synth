@@ -89,9 +89,10 @@ class Screen:
         # Creating Menu instance with control layout
         # Making use of the controls default layout values
         # The menu dictionary is used as the menu items
-        self.scales_menu = ScaleMenu(
+        self.scales_menu = Menu(
             x = 200, y = 100,
-            menu_dictionary = SCALES
+            menu_dictionary = SCALES,
+            columns = 2, rows = 8
         )
 
         # The Menu class is created from configurable dictionary, in this
@@ -104,7 +105,7 @@ class Screen:
 
         # The Menu class is created from configurable dictionary, in this
         # in this case a Left and Right menu items
-        self.left_right_menu = Menu(
+        self.st_wearing_hand_menu = Menu(
             1000, 100,
             menu_dictionary = ST_WEARING_HAND,
             btm_text_color = (255, 0, 255)
@@ -227,8 +228,8 @@ class Screen:
         img = self.pulse_sustain_menu.draw(img)
 
         # SensorTile hand selection
-        self.left_right_menu.set_visible(True)
-        img = self.left_right_menu.draw(img)
+        self.st_wearing_hand_menu.set_visible(True)
+        img = self.st_wearing_hand_menu.draw(img)
 
         return img
 
@@ -246,7 +247,7 @@ class Screen:
         """
         self.pulse_sustain_menu.set_visible(False)
         self.scales_menu.set_visible(False)
-        self.left_right_menu.set_visible(False)
+        self.st_wearing_hand_menu.set_visible(False)
 
     def event_processing(self, img, lm_list):
         # Tip of index and middle finger
@@ -271,10 +272,6 @@ class Screen:
                 img, (x1, y1 - 15), (x2, y2 + 15), (255, 0, 255), cv2.FILLED
             )
 
-            # The print function is used for diagnostic purposes only
-            # Will be replaced by logging functionality
-            # print("Selection Mode", x1, y1)
-
             # checking for the click
             if y1 < 89:
                 if 0 < x1 < 90:
@@ -285,17 +282,11 @@ class Screen:
                         self.header_index = 0
                         self.switch_delay = 0
 
-        # Drawing mode
-        if fingers[1] and fingers[2] == False:
-            cv2.circle(img, (x1, y1), 15, (255, 0, 255), cv2.FILLED)
-            print("Single Finger Mode")
-
         """
         The following code determines if a plus button or a minus
         button has been clicked.  If the button has been clicked
-        the state is maintained in the control and can be queried
-        """
-        
+        the state is maintained in the control and can be queried.
+        """       
         img = self.bpm_slider.set_sliders(img, x1, y1)
 
         self.subdivision_plus_minus.plus_btn_click(x1, y1)
@@ -307,8 +298,8 @@ class Screen:
         self.octave_base_plus_minus.plus_btn_click(x1, y1)
         self.octave_base_plus_minus.minus_btn_click(x1, y1)
 
-        self.scales_menu.menu_item_clicked(x1, y1)
-        self.left_right_menu.menu_item_clicked(x1, y1)
-        self.pulse_sustain_menu.menu_item_clicked(x1, y1)
+        self.scales_menu.set_value(x1, y1)
+        self.st_wearing_hand_menu.set_value(x1, y1)
+        self.pulse_sustain_menu.set_value(x1, y1)
 
         return img
