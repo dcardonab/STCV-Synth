@@ -4,7 +4,7 @@
 
 * Install and test `bleak` in Jetson Nano.
 
-* Verify automatic selection of `defualt` audio driver when initializing. --> Difficult due to Pyo's `pa_list_devices()` function only printing the list of devices to the screen as opposed to returning the list. GitHub issue has been opened for this, and depending on the answer, it might be necessary to implement a function that queries PortAudio.
+* Verify automatic selection of `defualt` audio driver when initializing.
 
 * Verify installation process.
 
@@ -25,15 +25,11 @@
 
 ## CV
 
-* Improve performance
+* Optimize performance
 
 * Use the ST wearing hand menu to only detect the other hand for polyphony, and the ST hand for GUI operation.
 
 
 ## GUI
-
-* Connect octave base GUI control to the synth.
-
-* Reduce GUI buttons sensitivity.
 
 * Gray out plus and minus buttons when the current value is equal to the minimum or maximum.

@@ -2,7 +2,9 @@
 
 ## MAC and Windows
 
-To install all dependencies, run: `pip install -r requirements.txt`
+* To install all **synth** dependencies, run: `pip install -r requirements_synth.txt`
+
+* To install all **analysis** dependencies, run: `pip install -r requirements_analysis.txt`
 
 
 ## Debian and Ubuntu
