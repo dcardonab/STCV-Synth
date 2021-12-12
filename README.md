@@ -86,8 +86,6 @@ On the STCV-Synth root folder, run: `python main.py`
 
 * Video Synth (potentially use PyOpenGL + shaders for GPU execution)
 
-* Add data analysis visualization tools (potentially use MatPlotLib and/or Seaborn)
-
 * Add new musical gestures
     * Switch chord type, e.g., major, minor, suspended, augmented, diminished, etc. (this might be quite complicated because of scales are defined in such a way that the data gets quantizes to specific scale steps).
 

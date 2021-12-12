@@ -21,14 +21,15 @@ class Synth():
             self.osc
 
         Settings properties:
-            self.cur_base       # As it relates to BASE_MULT_OPTIONS
-            self.cur_tonal_center
             self.base_hz
+            self.base_key       # Key for easy matching against screen values
+            self.base_mult_and_range    # As it relates to BASE_MULT_OPTIONS
+            self.tonal_center
             self.oct_range
             self.scale          # tuple: (scale name, np.array structure)
             self.bpm
             self.subdivision
-            self.pulse_range
+            self.pulse_rate
     """
 
     def __init__(self, audio_sample_rate: int) -> None:
@@ -43,8 +44,10 @@ class Synth():
         self.server = Server(audio_sample_rate)
 
         # Linux requires selecting the device with 'default' name.
-        if platform == "linux":
-            self.set_output_device()
+        # if platform == "linux":
+        #     self.server.setOutputDevice(pa_get_default_output())
+
+        self.server.setOutputDevice(pa_get_default_output())
 
         # the boot() function boots the server.
         # booting the server includes:
@@ -114,8 +117,8 @@ class Synth():
     SCALE FUNCTIONS
     """
 
-    def set_base(self, tonal_cntr: str = DEF_TONAL_CENTER,
-                 mult: str = DEF_BASE_MULTIPLIER) -> None:
+    def set_base(self, tonal_center: str = DEF_TONAL_CENTER,
+                 mult_key: str = DEF_BASE_MULTIPLIER) -> None:
         """
         The base is the lowest possible frequency of the synth. It is set by
         multiplying a tonal center (frequency) with a base multiplier, which
@@ -123,9 +126,11 @@ class Synth():
         """
         # BASE_MULT_OPTIONS values are tuples containing the base multiplier,
         # as well as the maximum octave range available for that base.
-        self.cur_base = BASE_MULT_OPTIONS[mult]
-        self.cur_tonal_center = tonal_cntr
-        self.base_hz = TONAL_CENTER_OPTIONS[tonal_cntr] * self.cur_base[0]
+        self.base_mult_and_range = BASE_MULT_OPTIONS[mult_key]
+        self.base_key = mult_key
+        self.tonal_center = tonal_center
+        self.base_hz = TONAL_CENTER_OPTIONS[tonal_center] * \
+            self.base_mult_and_range[0]
 
     def set_osc_freq(self, scale_step: int) -> None:
         """
@@ -149,10 +154,10 @@ class Synth():
         
         # Truncate value to maximum availble octave range for the selected
         # frequency base if it exeeds it. The second value of the tuple
-        # contained in cur_base contains the maximum octave value
+        # contained in base_mult_and_range contains the maximum octave value
         # available for the selected base.
-        if oct_range > self.cur_base[1]:
-            self.oct_range = self.cur_base[1]
+        if oct_range > self.base_mult_and_range[1]:
+            self.oct_range = self.base_mult_and_range[1]
             return
 
         self.oct_range = oct_range
@@ -298,11 +303,11 @@ class Synth():
             # Verify that input is a number.
             except ValueError:
                 print(f"Please choose a number between 1 and \
-                    {self.cur_base[1]} inclusive. If selection is lesser \
-                    than 1, the octave range will be set to one. If the \
-                    number exceeds the maximum octave range for the selected \
-                    base ({self.cur_base[1]}), it will be truncated to that \
-                    maximum value.")
+                    {self.base_mult_and_range[1]} inclusive. If selection is \
+                    lesser than 1, the octave range will be set to one. If \
+                    the number exceeds the maximum octave range for the \
+                    selected base ({self.base_mult_and_range[1]}), it will \
+                    be truncated to that maximum value.")
 
         # Set chosen values.
         self.set_oct_range(oct_range)
@@ -310,7 +315,7 @@ class Synth():
         
 
     def print_properties(self) -> None:
-        print(f"\n\tTonal Center: {self.cur_tonal_center}")
+        print(f"\n\tTonal Center: {self.tonal_center}")
         print(f"\tBase Fequency: {self.base_hz}Hz")
         print(f"\n\tCurrent Scale: {self.scale[0].capitalize()}")
         print(f"\tOctave Range: {self.oct_range}")
@@ -329,32 +334,6 @@ class Synth():
         print("\n\tShutting down the audio server.\n")
         # Stop the server
         self.server.stop()
-
-    def set_output_device(self) -> None:
-        """
-        Used in Linux to select the correct audio device. Make sure to select
-        the 'default' named device for proper operation of the Pyo server.
-        """
-        # available_devices = pa_list_devices()
-
-        # # Automatic selection of corresponding device.
-        # for device in available_devices:
-        #     if "name: default" in device:
-        #         if device[1] == ':':
-        #             device_number = int(device[0])
-        #         elif device[2] == ':':
-        #             device_number = int(device[0:2])
-        
-        # # Manual selection if automatic selection fails.
-        # if not device_number:
-        #     print("\tSelect device with 'default' name")
-        #     device_number = int(input("\n\tSelect audio device: "))
-
-        pa_list_devices()
-        print("\tSelect device with 'default' name")
-        device_number = int(input("\n\tSelect audio device: "))
-            
-        self.server.setOutputDevice(device_number)
 
     """
     RENDER
@@ -376,7 +355,7 @@ class Synth():
         i = 0
         while True:
             # ':02d' is used to express ints with two digits.
-            out_file = f"{self.cur_tonal_center}_{self.scale[0]}_bpm{int(60/self.bpm)}_{i:02d}"
+            out_file = f"{self.tonal_center}_{self.scale[0]}_bpm{int(60/self.bpm)}_{i:02d}"
             if not os.path.exists(os.path.join(out_folder, out_file + ".wav")):
                 break
             i += 1
