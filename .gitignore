@@ -1,9 +1,12 @@
 # MAC
 .DS_Store
 
-# Python and other libraries
-__pycache__/
+# Libraries
 mediapipe/
+
+# Cache
+__pycache__/
+*/.ipynb_checkpoints
 
 # SensorTile Firmware working directory
 */STM32CubeFunctionPack_ALLMEMS1_V3.1.0
@@ -11,6 +14,7 @@ mediapipe/
 # Renders
 renders/
 
-# venv
-.env-synth
+# Virtual Environments
+.venv_analysis/
+.venv_synth/
 venv/

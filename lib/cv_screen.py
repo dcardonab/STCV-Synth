@@ -270,7 +270,7 @@ class Screen:
 
         self.frame = self.bpm_slider.set_sliders(self.frame, x, y)
 
-        if self.sensitivity > 5:
+        if self.sensitivity > 8:
             # Check for collision against performance GUI.
             if self.header_index == 0:
                 # 'col' will be set to true if there was a collision detected.
