@@ -61,28 +61,27 @@ class Screen:
         # Layout the coordinates and labels of the PlusMinusSubdivions controls
         # PlusMinusSubdivions is child control of the PlusMinusButtons
         self.subdivision_plus_minus = GUI_Subdivions(
-            x = 1000, y = 350,
+            x = 1000, y = 270,
             label = "Subdivision",
-            label_offset_x = -175,
-            visible = False
+            label_offset_x = -175
         )
 
         # Creating PlusMinusButtons instance as member variable
         # Layout the coordinates and labels of the PlusMinusButtons control
-        self.octave_base_plus_minus = GUI_OctaveBase(
-            x = 1000, y = 450,
+        self.octave_base_plus_minus = PlusMinusButtons(
+            x = 1000, y = 400,
             label = "8ve Base",
             label_offset_x = -150,
-            visible = False
+            min_value = -2, max_value = 4
         )
 
         # Creating PlusMinusButtons instance as member variable
         # Layout the coordinates and labels of the PlusMinusButtons control
         self.octave_range_plus_minus = PlusMinusButtons(
-            x = 1000, y = 550,
+            x = 1000, y = 530,
             label = "8ve Range",
             label_offset_x = -170,
-            visible = False
+            min_value = 1, max_value = 7
         )
 
         """ Settings GUI Controls"""
@@ -106,7 +105,7 @@ class Screen:
         # The Menu class is created from configurable dictionary, in this
         # in this case a Left and Right menu items
         self.st_wearing_hand_menu = Menu(
-            1000, 100,
+            x = 1000, y = 100,
             menu_dictionary = ST_WEARING_HAND,
             btm_text_color = (255, 0, 255)
         )
@@ -135,10 +134,10 @@ class Screen:
 
             # Display GUI controllers.
             if self.header_index == 0:
-                self.hide_settings_gui()
+                # self.hide_settings_gui()
                 img = self.draw_performance_gui(img)
             else:
-                self.hide_performance_gui()
+                # self.hide_performance_gui()
                 img = self.draw_settings_gui(img)
                 
             # Retrieve button image to show.
@@ -195,111 +194,61 @@ class Screen:
 
     def draw_performance_gui(self, img):
         """
-        draw_performance_gui sets the performance GUI controls visible.
+        Draw the performance GUI controls.
         """
 
-        # BPM slider. This control has its own visibility controls.
         img = self.bpm_slider.draw_controls(img)
-
-        # Subdivision plus-minus control
-        self.subdivision_plus_minus.set_visible(True)
         img = self.subdivision_plus_minus.draw(img)
-
-        # Octave Range Control
-        self.octave_range_plus_minus.set_visible(True)
         img = self.octave_range_plus_minus.draw(img)
-
-        # Octave Base Control
-        self.octave_base_plus_minus.set_visible(True)
         img = self.octave_base_plus_minus.draw(img)
 
         return img
 
     def draw_settings_gui(self, img):
         """
-        draw_settings_gui sets the settings GUI controls visible.
+        Draw the settings GUI controls.
         """
-        # Scale selector
-        self.scales_menu.set_visible(True)
+
         img = self.scales_menu.draw(img)
-
-        # Synthesizer mode
-        self.pulse_sustain_menu.set_visible(True)
         img = self.pulse_sustain_menu.draw(img)
-
-        # SensorTile hand selection
-        self.st_wearing_hand_menu.set_visible(True)
         img = self.st_wearing_hand_menu.draw(img)
 
         return img
 
-    def hide_performance_gui(self) -> None:
-        """
-        hide_performance_gui hides the performance GUI controls.
-        """
-        self.subdivision_plus_minus.set_visible(False)
-        self.octave_range_plus_minus.set_visible(False)
-        self.octave_base_plus_minus.set_visible(False)
-
-    def hide_settings_gui(self) -> None:
-        """
-        hide_settings_gui hides the settings GUI controls.
-        """
-        self.pulse_sustain_menu.set_visible(False)
-        self.scales_menu.set_visible(False)
-        self.st_wearing_hand_menu.set_visible(False)
-
     def event_processing(self, img, lm_list):
-        # Tip of index and middle finger
-        # the following values are the landmarks for any hand
-        # finger tips pointer and index fingers
+        # Get the node corresponding to the tip of the index finger. The
+        # following values are the landmarks for any hand's index finger tips.
         x1, y1 = lm_list[8][1:]
-        x2, y2 = lm_list[12][1:]
 
         """
-        This method call tests if the fingers are opened (pointing upward)
-        or if in a closed position (like a fist)
+        Check for GUI collisions.
         """
-        fingers = self.detector.finger_is_open(lmList=lm_list)
+        if y1 < 89:
+            if 0 < x1 < 90:
+                if self.header_index == 0 and self.switch_delay > 10:
+                    self.header_index = 1
+                    self.switch_delay = 0
+                elif self.switch_delay > 10:
+                    self.header_index = 0
+                    self.switch_delay = 0
+
+        # Check for collision against performance GUI.
+        if self.header_index == 0:
+            img = self.bpm_slider.set_sliders(img, x1, y1)
+
+            self.subdivision_plus_minus.plus_btn_check_collision(x1, y1)
+            self.subdivision_plus_minus.minus_btn_check_collision(x1, y1)
+
+            self.octave_range_plus_minus.plus_btn_check_collision(x1, y1)
+            self.octave_range_plus_minus.minus_btn_check_collision(x1, y1)
+
+            self.octave_base_plus_minus.plus_btn_check_collision(x1, y1)
+            self.octave_base_plus_minus.minus_btn_check_collision(x1, y1)
         
-        """
-        Selection mode, if two fingers are up
-        Two open fingers are used to determine if we are using 
-        performance controls or settings controls
-        """
-        if fingers[1] and fingers[2]:
-            cv2.rectangle(
-                img, (x1, y1 - 15), (x2, y2 + 15), (255, 0, 255), cv2.FILLED
-            )
+        # Check for collision against settings GUI.
+        else:
+            self.scales_menu.check_collision(x1, y1)
+            self.st_wearing_hand_menu.check_collision(x1, y1)
+            self.pulse_sustain_menu.check_collision(x1, y1)
 
-            # checking for the click
-            if y1 < 89:
-                if 0 < x1 < 90:
-                    if self.header_index == 0 and self.switch_delay > 10:
-                        self.header_index = 1
-                        self.switch_delay = 0
-                    elif self.switch_delay > 10:
-                        self.header_index = 0
-                        self.switch_delay = 0
-
-        """
-        The following code determines if a plus button or a minus
-        button has been clicked.  If the button has been clicked
-        the state is maintained in the control and can be queried.
-        """       
-        img = self.bpm_slider.set_sliders(img, x1, y1)
-
-        self.subdivision_plus_minus.plus_btn_click(x1, y1)
-        self.subdivision_plus_minus.minus_btn_click(x1, y1)
-
-        self.octave_range_plus_minus.plus_btn_click(x1, y1)
-        self.octave_range_plus_minus.minus_btn_click(x1, y1)
-
-        self.octave_base_plus_minus.plus_btn_click(x1, y1)
-        self.octave_base_plus_minus.minus_btn_click(x1, y1)
-
-        self.scales_menu.set_value(x1, y1)
-        self.st_wearing_hand_menu.set_value(x1, y1)
-        self.pulse_sustain_menu.set_value(x1, y1)
-
-        return img
+        return img        

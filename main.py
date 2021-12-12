@@ -80,9 +80,11 @@ async def main():
 
         # Set initial GUI values to match the Synth settings.
         screen.bpm_slider.set_bpm(int(60 / synth.bpm))
-        screen.subdivision_plus_minus.set_init_value(int(synth.subdivision))
-        # The tuple contained in scales holds the name of the scale as its
-        # first value, and the structure of the scale as its second value.
+        screen.subdivision_plus_minus.init_value(int(synth.subdivision))
+        screen.octave_base_plus_minus.init_value(int(synth.base_key))
+        screen.octave_range_plus_minus.init_value(synth.oct_range)
+
+        # Initialize Menus
         screen.scales_menu.init_value(synth.scale[0])
         screen.pulse_sustain_menu.init_value(list(SYNTH_MODE.keys())[0])
         screen.st_wearing_hand_menu.init_value(list(ST_WEARING_HAND.keys())[0])
@@ -186,13 +188,6 @@ async def main():
         # Read image from the camera for processing and displaying it.
         # This includes all visual GUI controls.
         if screen:
-            # Because octave range has constrains based on the octave base,
-            # and the GUI element is unconstrained, it needs to be updated
-            # in case there was any truncation applied when updating the
-            # synth's octave range.
-            if synth.oct_range != screen.octave_range_plus_minus.value:
-                screen.octave_range_plus_minus.set_value(synth.oct_range)
-
             # Update Octave Range GUI control in case it exceeded the maximum
             # for the selected base.
             screen.CV_loop(show_FPS)
@@ -215,12 +210,29 @@ async def main():
                 # Apply new subdivision to the pulsing rate.
                 synth.set_pulse_rate()
 
+            # Update synth octave base if it changed in the GUI.
+            if synth.base_key != screen.octave_base_plus_minus.value:
+                synth.set_base(
+                    synth.tonal_center,
+                    str(screen.octave_base_plus_minus.value)
+                )
+                screen.octave_range_plus_minus.set_max_value(
+                    synth.base_mult_and_range[1]
+                )
+
             # Update synth octave range if it changed in the GUI.
             if synth.oct_range != screen.octave_range_plus_minus.value:
                 synth.set_oct_range(screen.octave_range_plus_minus.value)
                 # Apply new octave range to the scale. The first value of
                 # the scale tuple contains the name of the scale.
                 synth.set_scale(synth.scale[0])
+                # Because octave range has constrains based on the octave
+                # base, and the GUI element is unconstrained, it needs to
+                # be updated in case there was any truncation applied when
+                # updating the synth's octave range.
+                screen.octave_range_plus_minus.set_max_value(
+                    synth.base_mult_and_range[1]
+                )
 
             # Update synth scale if it changed in the GUI.
             if synth.scale[0] != screen.scales_menu.get_value():
