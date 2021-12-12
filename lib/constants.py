@@ -31,9 +31,9 @@ ST_WEARING_HAND = {
 """
 Synthesizer Constants
 """
-DEF_BASE_MULTIPLIER = '1'
+DEF_BASE_MULTIPLIER = 1
 DEF_BPM = 100
-DEF_SUBDIVISION = '16'
+DEF_SUBDIVISION = 16
 DEF_NUM_OCTAVES = 2
 DEF_SCALE = 'dorian'
 DEF_TONAL_CENTER = 'A'
@@ -69,25 +69,25 @@ SCALES = {
 
 # BPM sub-divisions
 BPM_SUBDIVISIONS = {
-    "1": 0.25,
-    "2": 0.5,
-    "3": 0.75,
-    "4": 1,
-    "6": 1.5,
-    "8": 2,
-    "12": 3,
-    "16": 4,
+    1: 0.25,
+    2: 0.5,
+    3: 0.75,
+    4: 1,
+    6: 1.5,
+    8: 2,
+    12: 3,
+    16: 4,
 }
 
 SUBDIVISION_OPTIONS = {
-    "1": "Whole Notes",
-    "2": "Half Notes",
-    "3": "Half Note Triplet",
-    "4": "Quarter Notes",
-    "6": "Quarter Note Triplet",
-    "8": "Eigth Notes",
-    "12": "Eigth Note Triplet",
-    "16": "Sixteenth Notes",
+    1: "Whole Notes",
+    2: "Half Notes",
+    3: "Half Note Triplet",
+    4: "Quarter Notes",
+    6: "Quarter Note Triplet",
+    8: "Eigth Notes",
+    12: "Eigth Note Triplet",
+    16: "Sixteenth Notes",
 }
 
 # Music Key and Multiplier Options
@@ -114,11 +114,11 @@ TONAL_CENTER_OPTIONS = {
 # Each key holds a tuple containing the base multiplier
 # and the maximum octave range for that multiplier.
 BASE_MULT_OPTIONS = {
-    "-2": (0.25, 7),
-    "-1": (0.5, 6),
-    "0": (1, 5),
-    "1": (2, 4),
-    "2": (4, 3),
-    "3": (8, 2),
-    "4": (16, 1),
+    -2: (0.25, 7),
+    -1: (0.5, 6),
+    0: (1, 5),
+    1: (2, 4),
+    2: (4, 3),
+    3: (8, 2),
+    4: (16, 1),
 }

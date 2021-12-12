@@ -48,7 +48,8 @@ On the STCV-Synth root folder, run: `python main.py`
     * [Numpy Math Fuctions](https://numpy.org/doc/stable/reference/routines.math.html)
 
 * OpenCV
-    * [Video Capture](https://docs.opencv.org/4.x/d8/dfe/classcv_1_1VideoCapture.html#a473055e77dd7faa4d26d686226b292c1)
+    * [Video Capture](https://docs.opencv.org/3.4/d8/dfe/classcv_1_1VideoCapture.html)
+    * [Video Capture Properties](https://docs.opencv.org/3.4/d4/d15/group__videoio__flags__base.html)
 
 * Orientation
     * [3-DOF Orientation Tracking - Stanford](https://stanford.edu/class/ee267/notes/ee267_notes_imu.pdf)
@@ -62,8 +63,8 @@ On the STCV-Synth root folder, run: `python main.py`
     * [Map Function](http://ajaxsoundstudio.com/pyodoc/api/classes/map.html)
     * [Tips for Improving Real-Time Performance](http://ajaxsoundstudio.com/pyodoc/perftips.html)
 
-* General
-    * [Scale one range to another](https://stackoverflow.com/questions/4154969/how-to-map-numbers-in-range-099-to-range-1-01-0/33127793)
+* Threading
+    * [Python Threading](https://docs.python.org/3/library/threading.html)
 
 
 # Further Goals

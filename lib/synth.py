@@ -118,7 +118,7 @@ class Synth():
     """
 
     def set_base(self, tonal_center: str = DEF_TONAL_CENTER,
-                 mult_key: str = DEF_BASE_MULTIPLIER) -> None:
+                 mult_key: int = DEF_BASE_MULTIPLIER) -> None:
         """
         The base is the lowest possible frequency of the synth. It is set by
         multiplying a tonal center (frequency) with a base multiplier, which
@@ -184,7 +184,7 @@ class Synth():
         """
         self.bpm = 60 / bpm
 
-    def set_subdivision(self, subdivision: str = DEF_SUBDIVISION) -> None:
+    def set_subdivision(self, subdivision: int = DEF_SUBDIVISION) -> None:
         """
         Method sets the sub-division that will be applied to the BPM when
         setting the pulse rate of the synthesizer.
@@ -237,7 +237,7 @@ class Synth():
             # Set the base multiplier
             print("\n\tSelect base multiplier (select numeric option):")
             [
-                print(f"\t\t{k}: Multiplier:\t{v[0]}\tMax 8ve range:\t{v[1]}") 
+                print(f"\t\t{k}:\tMultiplier:\t{v[0]}\tMax 8ve range:\t{v[1]}") 
                 for k, v in BASE_MULT_OPTIONS.items()
             ]
             print(f"\tUnavailable inputs default to option \
@@ -298,7 +298,9 @@ class Synth():
         # Prompt user to choose an octave range.
         while True:
             try:
-                oct_range = int(input("\tSelect number of octaves: "))
+                oct_range = int(input(f"\tSelect number of octaves (max \
+                    value for selected scale is \
+                    {self.base_mult_and_range[1]}): "))
                 break
             # Verify that input is a number.
             except ValueError:
@@ -315,12 +317,15 @@ class Synth():
         
 
     def print_properties(self) -> None:
+        """
+        Print all of the Synth's set properties.
+        """
         print(f"\n\tTonal Center: {self.tonal_center}")
         print(f"\tBase Fequency: {self.base_hz}Hz")
         print(f"\n\tCurrent Scale: {self.scale[0].capitalize()}")
         print(f"\tOctave Range: {self.oct_range}")
         print(f"\tScale Structure: {self.scale[1]}")
-        print(f"\n\tBPM = Quarter Note {60 / self.bpm}")
+        print(f"\n\tBPM = Quarter Note {round(60 / self.bpm)}")
         print(f"\tSub-Division = {SUBDIVISION_OPTIONS[self.subdivision]}")
         print(f"\tPulse rate = {self.pulse_rate:.2f} seconds")
 

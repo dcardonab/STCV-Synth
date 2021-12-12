@@ -1,5 +1,5 @@
 # Python Libraries
-from typing import Tuple
+from typing import Tuple, Union
 
 # Third-Party Libraries
 import cv2
@@ -36,6 +36,14 @@ class PlusMinusButtons:
         self.back_color = back_color                    # Back color of text button
         self.label_offset_x = self.x1 + label_offset_x  # Distance from the button
 
+        # Create a bounding boxes to detect collisions against the buttons.
+        self.minus_bounding_box = create_rectangle_array(
+            (self.x1, self.y1), (self.x2, self.y2)
+        )
+        self.plus_bounding_box = create_rectangle_array(
+            (self.x1 + 100, self.y1), (self.x2 + 100, self.y2)
+        )
+
         # Set range of GUI element.
         self.min_value = min_value
         self.max_value = max_value
@@ -58,7 +66,7 @@ class PlusMinusButtons:
         if self.value > self.max_value:
             self.value = self.max_value
 
-    def draw(self, img):
+    def render(self, img):
         # Create the minus button rectangle.
         cv2.rectangle(
             img, (self.x1, self.y1), (self.x2, self.y2),
@@ -103,7 +111,7 @@ class PlusMinusButtons:
         # Return drawn controls overlaid on the image.
         return img
 
-    def minus_btn_check_collision(self, x: int, y: int) -> None:
+    def minus_btn_check_collision(self, x: int, y: int) -> Union[bool, None]:
         """
         Processes events for the minus botton collision (i.e., the
         intersection between a finger landmark and the button).
@@ -111,15 +119,12 @@ class PlusMinusButtons:
         # Ensure that decreasing the value would not exceed minumum.
         if self.min_value < self.value:
             point = Point(x, y)
-            # Create bounding box around button for collision detection.
-            bounding_box = create_rectangle_array(
-                (self.x1, self.y1), (self.x2, self.y2)
-            )
             # Decrease value if there was a collision.
-            if point_intersects(point, bounding_box):
+            if point_intersects(point, self.minus_bounding_box):
                 self.set_value(self.value - 1)
+                return True
 
-    def plus_btn_check_collision(self, x, y):
+    def plus_btn_check_collision(self, x: int, y: int) -> Union[bool, None]:
         """
         Processes events for the plus botton collision (i.e., the
         intersection between a finger landmark and the button).
@@ -128,13 +133,10 @@ class PlusMinusButtons:
         if self.max_value > self.value:
             # Convert coordinates into a point.
             point = Point(x, y)
-            # Create bounding box around button for collision detection.
-            bounding_box = create_rectangle_array(
-                (self.x1 + 100, self.y1), (self.x2 + 100, self.y2)
-            )
             # Increase value if there was a collision.
-            if point_intersects(point, bounding_box):
+            if point_intersects(point, self.plus_bounding_box):
                 self.set_value(self.value + 1)
+                return True
 
 
 class GUI_Subdivions(PlusMinusButtons):
@@ -148,20 +150,18 @@ class GUI_Subdivions(PlusMinusButtons):
             # The values here increase only by one step. Since the 
             # values are pulled from a dictionary, the key
             # is the value of that can be selected
-            if str(self.value) in BPM_SUBDIVISIONS.keys():
+            if self.value in BPM_SUBDIVISIONS.keys():
                 keys = list(BPM_SUBDIVISIONS)
-                index = keys.index(str(self.value))
+                index = keys.index(self.value)
                 if index + 1 < len(keys):
-                    key = int(keys[index + 1])
-                    self.value = key
+                    self.value = keys[index + 1]
 
         elif value < self.value:
-            if str(self.value) in BPM_SUBDIVISIONS.keys():
+            if self.value in BPM_SUBDIVISIONS.keys():
                 keys = list(BPM_SUBDIVISIONS)
-                index = keys.index(str(self.value))
+                index = keys.index(self.value)
                 if index - 1 >= 0:
-                    key = int(keys[index - 1])
-                    self.value = key
+                    self.value = keys[index - 1]
 
 
 class Menu:
@@ -180,7 +180,6 @@ class Menu:
         self.rows = rows
         self.menu_items = menu_dictionary
         self.menu_items_coordinates = {}
-        self.value = None
 
         self.init_menu_items_coordinates()
 
@@ -193,23 +192,20 @@ class Menu:
     def set_value(self, value: dict) -> None:
         self.value = value
 
-    def check_collision(self, x: int, y: int) -> None:
+    def check_collision(self, x: int, y: int) -> Union[bool, None]:
         # Process collisions with menu items.
         for item in self.menu_items_coordinates:
             rectangle = self.menu_items_coordinates[item]
             if point_intersects((x, y), rectangle):
                 self.set_value({ item: rectangle })
-                break
+                return True
 
-    def draw(self, img):
-        # Create an overlay image to place buttons on
-        overlay = img.copy()
-
+    def render(self, img):
         for item in self.menu_items.keys():
-            overlay = self.draw_item(
+            overlay = self.render_item(
                 self.menu_items_coordinates[item][0],
                 self.menu_items_coordinates[item][2],
-                item, overlay
+                item, img
             )
 
         image_new = cv2.addWeighted(
@@ -218,9 +214,9 @@ class Menu:
 
         return image_new
 
-    def draw_item(
+    def render_item(
         self,
-        top_left: Tuple[int, int], btm_right: Tuple[int, int],
+        btm_left: Tuple[int, int], top_right: Tuple[int, int],
         item: str, overlay_img
     ):
         if item in self.value:
@@ -235,7 +231,7 @@ class Menu:
         cv2.putText(
             overlay_img,
             item,
-            top_left,
+            (btm_left[0], btm_left[1] - 20),
             cv2.FONT_HERSHEY_SIMPLEX,
             1,
             self.btm_text_color,
@@ -244,7 +240,7 @@ class Menu:
         )
 
         cv2.rectangle(
-            overlay_img, top_left, btm_right, self.btm_text_color, 1
+            overlay_img, btm_left, top_right, self.btm_text_color, 1
         )
 
         return overlay_img
@@ -294,8 +290,13 @@ class Slider:
         self.y1 = y
         self.x2 = x + 225
         self.y2 = y + 50
+
         self.min_value = min_value
         self.max_value = max_value
+
+        self.bounding_box = create_rectangle_array(
+            (self.x1, self.y1), (self.x2, self.y2)
+        )
 
     def set_bpm(self, bpm):
         if bpm is None:
@@ -306,11 +307,9 @@ class Slider:
             bpm = self.max_value
         self.BPM = bpm
 
-    def draw_controls(self, img):
+    def render(self, img):
         """
-        draw_controls drawing to layout the slider control
-        :param img: 
-        :return: img (opencv image)
+        Draw the slider control.
         """
         # Create a containing  retangle
         cv2.rectangle(
@@ -365,14 +364,11 @@ class Slider:
         """
         # Pickup BPM Control
         point = Point(x1, y1)
-        bpm_rectangle = create_rectangle_array((self.x1, self.y1), (self.x2, self.y2))
-        if point_intersects(point, bpm_rectangle):
-            bounds = polygon_bounds(bpm_rectangle)
+
+        if point_intersects(point, self.bounding_box):
+            bounds = polygon_bounds(self.bounding_box)
             # The countrol needs to read the X1 boundary 
             # to avoid hardcoding of values
             self.set_bpm(int(x1 - bounds[0]))
             
-            # self.BPM = 
-
-
         return img

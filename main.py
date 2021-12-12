@@ -2,6 +2,7 @@
 import asyncio
 import signal
 import sys
+from bleak import exc
 
 # Third-Party Libraries
 import numpy as np
@@ -76,13 +77,13 @@ async def main():
         await asyncio.sleep(1)
 
         y = input("\n\tWould you like to display FPS? (y/n) ")
-        show_FPS = True if y.lower() == "y" else False
+        screen.show_FPS = True if y.lower() == "y" else False
 
         # Set initial GUI values to match the Synth settings.
         screen.bpm_slider.set_bpm(int(60 / synth.bpm))
-        screen.subdivision_plus_minus.init_value(int(synth.subdivision))
-        screen.octave_base_plus_minus.init_value(int(synth.base_key))
-        screen.octave_range_plus_minus.init_value(synth.oct_range)
+        screen.subdivision_buttons.init_value(int(synth.subdivision))
+        screen.oct_base_buttons.init_value(int(synth.base_key))
+        screen.oct_range_buttons.init_value(synth.oct_range)
 
         # Initialize Menus
         screen.scales_menu.init_value(synth.scale[0])
@@ -118,6 +119,10 @@ async def main():
 
     # Start recording of the new audio file.
     synth.server.recstart(f"{out_path}.wav")
+
+    if screen:
+        # Start frame capturing thread.
+        screen.thread.start()
     
     """
     PERFORMANCE
@@ -188,10 +193,7 @@ async def main():
         # Read image from the camera for processing and displaying it.
         # This includes all visual GUI controls.
         if screen:
-            # Update Octave Range GUI control in case it exceeded the maximum
-            # for the selected base.
-            screen.CV_loop(show_FPS)
-        
+            screen.render()
             """
             Update Synth parameters based on CV controllers.
             """
@@ -202,27 +204,25 @@ async def main():
                 synth.set_pulse_rate()
 
             # Update synth subdivision it changed in the GUI.
-            if int(synth.subdivision) != \
-               screen.subdivision_plus_minus.value:
-                synth.set_subdivision(
-                    str(screen.subdivision_plus_minus.value)
-                )
+            if synth.subdivision != \
+            screen.subdivision_buttons.value:
+                synth.set_subdivision(screen.subdivision_buttons.value)
                 # Apply new subdivision to the pulsing rate.
                 synth.set_pulse_rate()
 
             # Update synth octave base if it changed in the GUI.
-            if synth.base_key != screen.octave_base_plus_minus.value:
+            if synth.base_key != screen.oct_base_buttons.value:
                 synth.set_base(
                     synth.tonal_center,
-                    str(screen.octave_base_plus_minus.value)
+                    screen.oct_base_buttons.value
                 )
-                screen.octave_range_plus_minus.set_max_value(
+                screen.oct_range_buttons.set_max_value(
                     synth.base_mult_and_range[1]
                 )
 
             # Update synth octave range if it changed in the GUI.
-            if synth.oct_range != screen.octave_range_plus_minus.value:
-                synth.set_oct_range(screen.octave_range_plus_minus.value)
+            if synth.oct_range != screen.oct_range_buttons.value:
+                synth.set_oct_range(screen.oct_range_buttons.value)
                 # Apply new octave range to the scale. The first value of
                 # the scale tuple contains the name of the scale.
                 synth.set_scale(synth.scale[0])
@@ -230,7 +230,7 @@ async def main():
                 # base, and the GUI element is unconstrained, it needs to
                 # be updated in case there was any truncation applied when
                 # updating the synth's octave range.
-                screen.octave_range_plus_minus.set_max_value(
+                screen.oct_range_buttons.set_max_value(
                     synth.base_mult_and_range[1]
                 )
 

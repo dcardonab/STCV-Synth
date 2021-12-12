@@ -27,7 +27,7 @@ class HandDetector:
 
         self.mpDraw = mp.solutions.drawing_utils
 
-    def findHands(self, img, draw=True):
+    def find_hands(self, img, draw=True):
         imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         self.results = self.hands.process(imgRGB)
 
@@ -39,7 +39,7 @@ class HandDetector:
                     )
         return img
 
-    def handCount(self):
+    def hand_count(self):
         if self.results.multi_handedness:
             return len(self.results.multi_handedness)
         else:
@@ -64,7 +64,7 @@ class HandDetector:
 
         return lmList
 
-    def find_z_depth(self, img, hand_number=0):
+    def find_z_depth(self, hand_number=0):
         if self.results.multi_hand_landmarks:
             z_depth = self.results.multi_hand_landmarks[hand_number].landmark[0].z
             return z_depth
