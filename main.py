@@ -2,7 +2,6 @@
 import asyncio
 import signal
 import sys
-from bleak import exc
 
 # Third-Party Libraries
 import numpy as np
@@ -79,24 +78,11 @@ async def main():
         y = input("\n\tWould you like to display FPS? (y/n) ")
         screen.show_FPS = True if y.lower() == "y" else False
 
-        # Set initial GUI values to match the Synth settings.
-        screen.bpm_slider.set_bpm(int(60 / synth.bpm))
-        screen.subdivision_buttons.init_value(int(synth.subdivision))
-        screen.oct_base_buttons.init_value(int(synth.base_key))
-        screen.oct_range_buttons.init_value(synth.oct_range)
-
-        # Initialize Menus
-        screen.scales_menu.init_value(synth.scale[0])
-        screen.pulse_sustain_menu.init_value(list(SYNTH_MODE.keys())[0])
-        screen.st_wearing_hand_menu.init_value(list(ST_WEARING_HAND.keys())[0])
+        screen.init_values(synth)
 
     else:
         screen = False
-
-    # Wait for three seconds to prevent printed lines from getting into
-    # other routines.
     
-
     """
     PRE-PERFORMANCE
     """
@@ -113,15 +99,14 @@ async def main():
         await sensor_tile.start_notification(ST_HANDLES['motion'])
         motion_dfl = data_frame_logger(f"{out_path}_motion.csv")
 
-        # await sensor_tile.start_notification(ST_HANDLES['quaternions'])
-        # quaternions_dfl = data_frame_logger(f"{out_path}_quaternions.csv")
-
+        await sensor_tile.start_notification(ST_HANDLES['quaternions'])
+        quaternions_dfl = data_frame_logger(f"{out_path}_quaternions.csv")
 
     # Start recording of the new audio file.
     synth.server.recstart(f"{out_path}.wav")
 
     if screen:
-        # Start frame capturing thread.
+        # Start frame update thread
         screen.thread.start()
     
     """
@@ -143,9 +128,9 @@ async def main():
             motion_dataframe = motion_dfl.new_record(motion)
             await motion_dfl.add_record(motion_dataframe)
 
-            # quaternions = await sensor_tile.quaternions_data.get()
-            # quaternions_dataframe = quaternions_dfl.new_record(quaternions)
-            # await quaternions_dfl.add_record(quaternions_dataframe)
+            quaternions = await sensor_tile.quaternions_data.get()
+            quaternions_dataframe = quaternions_dfl.new_record(quaternions)
+            await quaternions_dfl.add_record(quaternions_dataframe)
 
             """
             Set Synth values from ST motion data.
@@ -268,8 +253,8 @@ async def main():
         await sensor_tile.stop_notification(ST_HANDLES['motion'])
         await motion_dfl.write_log()
 
-        # await sensor_tile.stop_notification(ST_HANDLES['quaternions'])
-        # await quaternions_dfl.write_log()
+        await sensor_tile.stop_notification(ST_HANDLES['quaternions'])
+        await quaternions_dfl.write_log()
 
         # Disconnect from ST.
         await sensor_tile.BLE_disconnect()

@@ -57,7 +57,7 @@ class Synth():
         print("\tAudio server initialized")
 
         # Set the overall amplitude of the server.
-        self.server.amp = 0.9
+        self.server.amp = 1.0
 
         # Start audio processing in the server.
         self.server.start()
@@ -97,8 +97,8 @@ class Synth():
         self.mixer = Mixer(outs=1, chnls=2)
         self.mixer.addInput(voice=0, input=self.filt)
         self.mixer.addInput(voice=1, input=self.delay)
-        self.mixer.setAmp(vin=0, vout=0, amp=0.5)
-        self.mixer.setAmp(vin=1, vout=0, amp=0.5)
+        self.mixer.setAmp(vin=0, vout=0, amp=0.707)
+        self.mixer.setAmp(vin=1, vout=0, amp=0.707)
 
         # Initialize reverb to enhance the audio signal. The balance will be
         # controlled by the Azimuth angle from the ST.
