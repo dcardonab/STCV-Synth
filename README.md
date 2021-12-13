@@ -1,19 +1,12 @@
-# Install Dependecies
+# Description
 
-## MAC and Windows
+*Note that you will need at least Python 3.7 to run STCV-Synth, as it heavily relies on the `asyncio` module.*
 
-* To install all **synth** dependencies, run: `pip install -r requirements_synth.txt`
+Created by David Cardona and Robert Fischer.
 
-* To install all **analysis** dependencies, run: `pip install -r requirements_analysis.txt`
+# Installation
 
-
-## Debian and Ubuntu
-
-1. Follow these instructions to install **Pyo**:
-    * http://ajaxsoundstudio.com/pyodoc/compiling.html#debian-ubuntu-apt-get
-    * *Note that this series of commands will also install pip, which is required for step 2.*
-
-2. Run: `pip install -r requirements_linux.txt`
+Please refer to the included [installation](/documentation/installation.md) file.
 
 
 # Prepare SensorTile
@@ -22,10 +15,12 @@ Flashing the binaries is enough for prepping the SensorTile. See the [documentat
 
 If you're interested in modifying the firmware, see the [modified_files](/ST_Firmware/modified_files) folder and the [enclosed md file](/ST_Firmware/modified_files/updated_firmware_notes.md).
 
+(*Note that building on Linux is currently not possible as Linux is case-sensitive OS, and there are some case issues in the STMicroelectronics that are inconsistent with this requirement.*)
+
 
 # Execution
 
-On the STCV-Synth root folder, run: `python main.py`
+After completing the installation steps for your OS, and flashing you SensorTile, you may run the STCV-Synth from the project's root folder by running: `python main.py`
 
 
 # References
@@ -45,6 +40,10 @@ On the STCV-Synth root folder, run: `python main.py`
     * [Enable Notifications Example](https://github.com/hbldh/bleak/blob/develop/examples/enable_notifications.py)
     * [SensorTag Example](https://github.com/hbldh/bleak/blob/develop/examples/sensortag.py)
     * [Service Explorer Example](https://github.com/hbldh/bleak/blob/develop/examples/service_explorer.py)
+
+* MediaPipe
+    * [Build MediaPipe Python Package](https://google.github.io/mediapipe/getting_started/python.html#building-mediapipe-python-package)
+    * [Installation Instructions](https://google.github.io/mediapipe/getting_started/install.html#installing-on-debian-and-ubuntu)
 
 * Numpy
     * [Numpy Math Fuctions](https://numpy.org/doc/stable/reference/routines.math.html)
@@ -68,10 +67,15 @@ On the STCV-Synth root folder, run: `python main.py`
 * Threading
     * [Python Threading](https://docs.python.org/3/library/threading.html)
 
+* Ubuntu
+    * [Upgrade from Python 3.6 to 3.7 on Ubuntu 18.04](http://xtremetechie.com/how-to-upgrade-python-from-3-6-to-3-7-on-ubuntu-18/)
+
 
 # Further Goals
 
-* Add provisions for real-time OpenCV execution. (Potentially using Docker and/or other processes enabled by RabbitMQ)
+* Add provisions for real-time OpenCV execution, potentially using Docker and/or other processes enabled by RabbitMQ.
+
+* Enable GPU acceleration.
 
 * Add event handler
     * Set 'esc' key for quitting the program.

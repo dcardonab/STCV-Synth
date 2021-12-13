@@ -31,7 +31,7 @@ class Screen:
         self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, screen_size_y)
         
         # Limit buffer size property.
-        self.capture.set(cv2.CAP_PROP_BUFFERSIZE, 2)
+        self.capture.set(cv2.CAP_PROP_BUFFERSIZE, 3)
 
         # Read first frame to avoid an attribute error.
         self.status, self.frame = self.capture.read()
@@ -137,6 +137,18 @@ class Screen:
             btm_text_color = (255, 0, 255)
         )
 
+    def init_values(self, synth) -> None:
+        # Set initial GUI values to match the Synth settings.
+        self.bpm_slider.set_bpm(int(60 / synth.bpm))
+        self.subdivision_buttons.init_value(int(synth.subdivision))
+        self.oct_base_buttons.init_value(int(synth.base_key))
+        self.oct_range_buttons.init_value(synth.oct_range)
+
+        # Initialize Menus
+        self.scales_menu.init_value(synth.scale[0])
+        self.pulse_sustain_menu.init_value(list(SYNTH_MODE.keys())[0])
+        self.st_wearing_hand_menu.init_value(list(ST_WEARING_HAND.keys())[0])
+
     def update(self) -> None:
         """
         Computer Vision drawing and GUI operation logic.
@@ -144,9 +156,7 @@ class Screen:
         while True:
             if self.capture.isOpened():
                 # Flip image to display a mirror-like image to the user.
-                # The 'read' method from the VideoCapture object returns a
-                # tuple containing status of read (success vs. failed) and
-                # the captured frame.
+                # The second argument '1' flips the image horizontally.
                 self.frame = cv2.flip(self.capture.read()[1], 1)
 
                 # Find hand landmarks (i.e., nodes)
@@ -167,10 +177,7 @@ class Screen:
                 if self.sensitivity > 500:
                     self.sensitivity = 0
 
-            # Since the update method is running in a separate thread, it is
-            # important to set the rate of iteration at the same rate of
-            # the render method.
-            # time.sleep(self.FPS)
+            time.sleep(self.FPS)
 
     def render(self) -> None:
         # Display GUI controllers.
