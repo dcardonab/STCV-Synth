@@ -99,8 +99,8 @@ async def main():
         await sensor_tile.start_notification(ST_HANDLES['motion'])
         motion_dfl = data_frame_logger(f"{out_path}_motion.csv")
 
-        # await sensor_tile.start_notification(ST_HANDLES['quaternions'])
-        # quaternions_dfl = data_frame_logger(f"{out_path}_quaternions.csv")
+        await sensor_tile.start_notification(ST_HANDLES['quaternions'])
+        quaternions_dfl = data_frame_logger(f"{out_path}_quaternions.csv")
 
     # Start recording of the new audio file.
     synth.server.recstart(f"{out_path}.wav")
@@ -128,9 +128,9 @@ async def main():
             motion_dataframe = motion_dfl.new_record(motion)
             await motion_dfl.add_record(motion_dataframe)
 
-            # quaternions = await sensor_tile.quaternions_data.get()
-            # quaternions_dataframe = quaternions_dfl.new_record(quaternions)
-            # await quaternions_dfl.add_record(quaternions_dataframe)
+            quaternions = await sensor_tile.quaternions_data.get()
+            quaternions_dataframe = quaternions_dfl.new_record(quaternions)
+            await quaternions_dfl.add_record(quaternions_dataframe)
 
             """
             Set Synth values from ST motion data.
@@ -253,8 +253,8 @@ async def main():
         await sensor_tile.stop_notification(ST_HANDLES['motion'])
         await motion_dfl.write_log()
 
-        # await sensor_tile.stop_notification(ST_HANDLES['quaternions'])
-        # await quaternions_dfl.write_log()
+        await sensor_tile.stop_notification(ST_HANDLES['quaternions'])
+        await quaternions_dfl.write_log()
 
         # Disconnect from ST.
         await sensor_tile.BLE_disconnect()

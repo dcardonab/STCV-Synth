@@ -6,11 +6,11 @@ import mediapipe as mp
 class HandDetector:
     def __init__(
         self,
-        static_image_mode=False,
-        max_num_hands=2,
-        min_detection_confidence=0.5,
-        min_tracking_confidence=0.5,
-    ):
+        static_image_mode: bool = False,
+        max_num_hands: int = 2,
+        min_detection_confidence: float = 0.5,
+        min_tracking_confidence: float = 0.5,
+    ) -> None:
 
         self.static_image_mode = static_image_mode
         self.max_num_hands = max_num_hands
