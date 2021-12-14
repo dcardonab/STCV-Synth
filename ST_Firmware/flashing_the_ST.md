@@ -27,10 +27,12 @@ Alternatively, use [STM32CubeProgrammer](https://www.st.com/en/development-tools
 
 # Flashing SensorTile Non-Volatile Memory with stlink Utility (MacOS and Linux)
 
-These are instructions to flash data to the SensorTile using the `stlink` command line utility.
+These are instructions to flash data to the SensorTile using the [stlink](https://github.com/stlink-org/stlink) command line utility.
 
 * MacOS - Install via Homebrew:
     * `brew install stlink`
+
+Alternatively, [STM32CubeProgrammer](https://www.st.com/en/development-tools/stm32cubeprog.html) may be used to flash the ST using an interface that resembles the ST-Link Utility that is available for Windows. *Instructions for using STM32CubeProgrammer are not provided.*
 
 
 ## Flashing Addresses

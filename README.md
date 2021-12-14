@@ -77,11 +77,23 @@ After completing the installation steps for your OS, and flashing you SensorTile
 
 * Enable GPU acceleration.
 
+* Optimize OpenCV performance.
+
+* Gray out GUI plus and minus buttons when the current value is equal to the minimum or maximum.
+
+* Use the ST wearing hand menu to only detect the other hand for polyphony, and the ST hand for GUI operation. This may be unnecessary and different approaches may be taken to determine the functionality that will come from the ST wearing hand vs the other one.
+
+* Implement interactivity using various sensors.
+
 * Add event handler
     * Set 'esc' key for quitting the program.
     * Set 'p' key for triggering a pause state.
 
 * Add modes of operation based on automatic controller detection upon launch.
+
+* Implement 'Sustain' mode of operation. (Determine how to start and stop notes. Perhaps a tapping gesture?)
+
+* Add polyphonic control. (`Voice` class abstraction?)
 
 * Create shell script for flashing binaries.
 
