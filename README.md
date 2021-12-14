@@ -97,7 +97,9 @@ After completing the installation steps for your OS, and flashing you SensorTile
 
 * Create shell script for flashing binaries.
 
-* Verify Quaternion computations (i.e., usage of Real value *w*)
+* Verify Quaternion computations (i.e., usage of Real value *w*).
+
+* Map Quaternion calculated Euler angles to the synth.
 
 * Verify value interpolation in Pyo when updating ADSR 'mul' within a loop.
 
