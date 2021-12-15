@@ -1,8 +1,11 @@
 # Description
 
+[Demo](https://www.youtube.com/watch?v=4_abwXvLJU0)
+
 *Note that you will need at least Python 3.7 to run STCV-Synth, as it heavily relies on the `asyncio` module.*
 
 Created by David Cardona and Robert Fischer.
+
 
 # Installation
 
