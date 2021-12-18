@@ -12,7 +12,7 @@ __pycache__/
 */.ipynb_checkpoints
 
 # SensorTile Firmware working directory
-*/STM32CubeFunctionPack_ALLMEMS1_V3.1.0
+*/firmwares
 
 # Renders
 renders/

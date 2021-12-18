@@ -82,7 +82,7 @@ async def main():
 
     else:
         screen = False
-    
+
     """
     PRE-PERFORMANCE
     """
@@ -108,7 +108,7 @@ async def main():
     if screen:
         # Start frame update thread
         screen.thread.start()
-    
+
     """
     PERFORMANCE
     """
@@ -190,7 +190,7 @@ async def main():
 
             # Update synth subdivision it changed in the GUI.
             if synth.subdivision != \
-            screen.subdivision_buttons.value:
+               screen.subdivision_buttons.value:
                 synth.set_subdivision(screen.subdivision_buttons.value)
                 # Apply new subdivision to the pulsing rate.
                 synth.set_pulse_rate()
@@ -260,7 +260,7 @@ async def main():
         await sensor_tile.BLE_disconnect()
 
     print("\n##### Performance Complete #####\n\n")
-        
+
 
 if __name__ == "__main__":
     asyncio.run(main())

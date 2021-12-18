@@ -1,4 +1,6 @@
 import asyncio
+from typing import Any
+
 
 class droppingLifoQueue(asyncio.LifoQueue):
     """
@@ -12,7 +14,7 @@ class droppingLifoQueue(asyncio.LifoQueue):
     def _put(self, item):
         self._queue.append(item)
 
-    def _get(self):
+    def _get(self) -> Any:
         return self._queue.pop()
 
     def __drop(self):

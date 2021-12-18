@@ -7,10 +7,10 @@ from shapely.geometry.polygon import Polygon
 
 
 def create_rectangle_array(
-    pt1: Tuple[int, int], pt2: Tuple[int, int]) -> list:
+        pt1: Tuple[int, int],
+        pt2: Tuple[int, int]) -> list:
     """
-    This method takes two points and extracts a polygon 
-    boundary from it
+    This method takes two points and extracts a polygon boundary from it.
     """
     return [
         (pt1[0], pt1[1]),
@@ -19,9 +19,14 @@ def create_rectangle_array(
         (pt2[0], pt1[1])
     ]
 
+
 def polygon_bounds(polygon_array):
+    """
+    Build a polygon from an array, and return the bounds.
+    """
     polygon = Polygon(polygon_array)
     return polygon.bounds
+
 
 def point_intersects(point, polygon_array):
     """

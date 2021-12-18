@@ -66,7 +66,8 @@ class HandDetector:
 
     def find_z_depth(self, hand_number=0):
         if self.results.multi_hand_landmarks:
-            z_depth = self.results.multi_hand_landmarks[hand_number].landmark[0].z
+            z_depth = \
+                self.results.multi_hand_landmarks[hand_number].landmark[0].z
             return z_depth
         else:
             return 0
@@ -74,7 +75,9 @@ class HandDetector:
     def is_left_or_right_hand(self, index):
         if self.results.multi_handedness:
             hand = self.results.multi_handedness[index]
-            print("results.multi_handedness ", len(self.results.multi_handedness))
+            print(
+                "results.multi_handedness ", len(self.results.multi_handedness)
+            )
         return hand.classification[0].label
 
     def finger_is_open(self, lmList):

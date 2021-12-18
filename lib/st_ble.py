@@ -1,4 +1,5 @@
 # Python Libraries
+from ctypes import sizeof
 from struct import unpack_from
 from sys import platform
 from typing import Union
@@ -116,7 +117,7 @@ class SensorTile():
         # The order of the temp sensors is swapped in the ST GATT transfer.
         environment_data['temp1'] = result[4]
         environment_data['temp2'] = result[3]
-        
+
         # Add data to Queue
         self.environment_data.put_nowait((time_stamp, environment_data))
 
@@ -176,7 +177,7 @@ class SensorTile():
             np.degrees(np.arctan2(motion_data['acc_y'], motion_data['acc_z'])),
             2
         )
-        
+
         # Add data to Queue
         self.motion_data.put_nowait((time_stamp, motion_data))
 
@@ -209,8 +210,8 @@ class SensorTile():
         # Normalize Incoming vector quaternion.
         norm = np.sqrt(np.dot(result[1:], result[1:]))
         vec_q = list(i / norm for i in result[1:]) \
-                if norm > 0 else list(result[1:])
-        
+            if norm > 0 else list(result[1:])
+
         # Add real component to the quaternion.
         q = [self.quat_w] + vec_q
 
@@ -253,7 +254,7 @@ class SensorTile():
         )
 
         self.quat_w = q[0]
-        
+
         # Add data to Queue.
         self.quaternions_data.put_nowait((time_stamp, quat_data))
 
@@ -340,7 +341,7 @@ async def write_descriptor(client: BleakClient,
                            data: bytearray) -> None:
     """
     Write value to BLE client's specified GATT descriptor.
-    """                           
+    """
     try:
         await client.write_gatt_descriptor(desc, data)
     except Exception as e:

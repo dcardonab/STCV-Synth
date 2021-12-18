@@ -1,6 +1,5 @@
 # Python Libraries
 import os
-from sys import platform
 from typing import Union
 
 # Third-Party Libraries
@@ -104,7 +103,7 @@ class Synth():
         # controlled by the Azimuth angle from the ST.
         # The 'out()' method routes the given module to the DAC.
         self.reverb = Freeverb(
-            self.mixer[0], size = 0.8, damp = 0.8, bal = 0.5
+            self.mixer[0], size=0.8, damp=0.8, bal=0.5
         ).out()
 
     def play(self) -> None:
@@ -151,7 +150,7 @@ class Synth():
         if oct_range < 1:
             self.oct_range = 1
             return
-        
+
         # Truncate value to maximum availble octave range for the selected
         # frequency base if it exeeds it. The second value of the tuple
         # contained in base_mult_and_range contains the maximum octave value
@@ -237,7 +236,7 @@ class Synth():
             # Set the base multiplier
             print("\n\tSelect base multiplier (select numeric option):")
             [
-                print(f"\t\t{k}:\tMultiplier:\t{v[0]}\tMax 8ve range:\t{v[1]}") 
+                print(f"\t\t{k}:\tMultiplier:\t{v[0]}\tMax 8ve range:\t{v[1]}")
                 for k, v in BASE_MULT_OPTIONS.items()
             ]
             print(f"\tUnavailable inputs default to option \
@@ -279,7 +278,7 @@ class Synth():
         """
         Display and prompt user to choose a scale and an octave range.
         Available scales and ranges are declared in 'constants.py'.
-        This function is only run when initializing the synth, and 
+        This function is only run when initializing the synth, and
         choosing custom settings.
         """
         # Display available scales to the user.
@@ -298,9 +297,9 @@ class Synth():
         # Prompt user to choose an octave range.
         while True:
             try:
-                oct_range = int(input(f"\tSelect number of octaves (max \
-                    value for selected scale is \
-                    {self.base_mult_and_range[1]}): "))
+                oct_range = int(input(
+                    f"\tSelect number of octaves (max value for selected scale is {self.base_mult_and_range[1]}): "
+                ))
                 break
             # Verify that input is a number.
             except ValueError:
@@ -314,7 +313,6 @@ class Synth():
         # Set chosen values.
         self.set_oct_range(oct_range)
         self.set_scale(scale)
-        
 
     def print_properties(self) -> None:
         """
@@ -360,7 +358,8 @@ class Synth():
         i = 0
         while True:
             # ':02d' is used to express ints with two digits.
-            out_file = f"{self.tonal_center}_{self.scale[0]}_bpm{int(60/self.bpm)}_{i:02d}"
+            out_file = \
+                f"{self.tonal_center}_{self.scale[0]}_bpm{int(60/self.bpm)}_{i:02d}"
             if not os.path.exists(os.path.join(out_folder, out_file + ".wav")):
                 break
             i += 1

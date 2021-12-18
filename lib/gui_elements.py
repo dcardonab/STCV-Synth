@@ -6,8 +6,8 @@ import cv2
 from shapely.geometry import Point
 
 # Local Files
-from constants import BASE_MULT_OPTIONS, BPM_SUBDIVISIONS
-from geometry_utility import create_rectangle_array, point_intersects, polygon_bounds
+from constants import BPM_SUBDIVISIONS
+from geometry_utility import *
 
 
 class PlusMinusButtons:
@@ -33,8 +33,8 @@ class PlusMinusButtons:
         self.label = label                              # Button Label
         self.text_color = text_color                    # Text color for label
         self.btm_text_color = btm_text_color            # Text color for botton
-        self.back_color = back_color                    # Back color of text button
-        self.label_offset_x = self.x1 + label_offset_x  # Distance from the button
+        self.back_color = back_color                    # BG color
+        self.label_offset_x = self.x1 + label_offset_x  # Distance from button
 
         # Create a bounding boxes to detect collisions against the buttons.
         self.minus_bounding_box = create_rectangle_array(
@@ -76,7 +76,7 @@ class PlusMinusButtons:
         # Add the 'minus' sign text.
         # The order of drawing sets the display order.
         cv2.putText(
-            img, "-", ( (self.x1 + 12), (self.y1 + 35) ),
+            img, "-", (self.x1 + 12, self.y1 + 35),
             cv2.FONT_HERSHEY_SIMPLEX, 1, self.btm_text_color,
             2, cv2.LINE_AA
         )
@@ -89,7 +89,7 @@ class PlusMinusButtons:
 
         # Add the 'plus' sign text.
         cv2.putText(
-            img, "+", ( (self.x1 + 112), (self.y1 + 35) ),
+            img, "+", (self.x1 + 112, self.y1 + 35),
             cv2.FONT_HERSHEY_SIMPLEX, 1, self.btm_text_color,
             2, cv2.LINE_AA
         )
@@ -147,7 +147,7 @@ class GUI_Subdivions(PlusMinusButtons):
     """
     def set_value(self, value: int) -> None:
         if value > self.value:
-            # The values here increase only by one step. Since the 
+            # The values here increase only by one step. Since the
             # values are pulled from a dictionary, the key
             # is the value of that can be selected
             if self.value in BPM_SUBDIVISIONS.keys():
@@ -187,7 +187,7 @@ class Menu:
         return list(self.value.keys())[0]
 
     def init_value(self, value: str) -> None:
-        self.value = { value: self.menu_items_coordinates[value] }
+        self.value = {value: self.menu_items_coordinates[value]}
 
     def set_value(self, value: dict) -> None:
         self.value = value
@@ -197,7 +197,7 @@ class Menu:
         for item in self.menu_items_coordinates:
             rectangle = self.menu_items_coordinates[item]
             if point_intersects((x, y), rectangle):
-                self.set_value({ item: rectangle })
+                self.set_value({item: rectangle})
                 return True
 
     def render(self, img):
@@ -275,7 +275,7 @@ class Menu:
 class Slider:
     """
     This class creates a slider control where the data value falls inside
-    the bounding rectangle. 
+    the bounding rectangle.
     """
     def __init__(
         self, BPM: int = 100, textlabel: str = "BPM",
@@ -358,17 +358,17 @@ class Slider:
         The method exists to checks to see if the user is
         trying to adjust the slider by intersection of the
         containing control
-        
-        This method takes the opencv image, but currently adds 
-        nothing to it. 
+
+        This method takes the opencv image, but currently adds
+        nothing to it.
         """
         # Pickup BPM Control
         point = Point(x1, y1)
 
         if point_intersects(point, self.bounding_box):
             bounds = polygon_bounds(self.bounding_box)
-            # The countrol needs to read the X1 boundary 
+            # The countrol needs to read the X1 boundary
             # to avoid hardcoding of values
             self.set_bpm(int(x1 - bounds[0]))
-            
+
         return img

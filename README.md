@@ -1,8 +1,17 @@
+# STCV-Synth Demo Videos
+
+* [Performance – Short Demo](https://www.youtube.com/watch?v=4_abwXvLJU0)
+
+* [Rundown](https://www.youtube.com/watch?v=CzRnUWZmRmQ)
+
+
 # Description
 
-[Demo](https://www.youtube.com/watch?v=4_abwXvLJU0)
+STCV-Synth is the first prototype in a series of devices designed for people with disabilites to express themselves creatively. Secondarily, these devices are designed to create novel approaches for interdisciplinary art performances. It is our hope that we bring new opportunities of expression to artists, non-artists, and any other individual.
 
-*Note that you will need at least Python 3.7 to run STCV-Synth, as it heavily relies on the `asyncio` module.*
+The STCV-Synth consists of an audio DSP engine that is operated via two controllers, an STMicroelectronics SensorTile (ST), and Computer Vision (CV). The combination of these controllers create performance approaches analogous to conducting an orchestra.
+
+*Note that you will need at least Python 3.7 to run STCV-Synth, as it heavily relies on the `asyncio` module. We are currently working in developing a workaround for running it on Python 3.6, which is what the NVIDIA Jetson Nano ships out with.*
 
 Created by David Cardona and Robert Fischer.
 
@@ -13,6 +22,10 @@ Please refer to the included [installation](/documentation/installation.md) file
 
 
 # Prepare SensorTile
+
+![SensorTile](/media/SensorTile_Cradle.jpg)
+
+*Please note that as of right now, the quaternion functionality will only work when the SensorTile is soldered onto a cradle board. Using the SensorTile on a cradle expansion board will result in an error unpacking the data received via GATT. We are working on this and hope to upload a updated version of the firmware that guarantees quaternion compatibility in both the cradle and the cradle expansion boards.*
 
 Flashing the binaries is enough for prepping the SensorTile. See the [documentation](/ST_Firmware/flashing_the_ST.md) on how to do this within the [ST_Firmware](/ST_Firmware) folder.
 
