@@ -16,7 +16,7 @@ Below is a breakdown of what was changed, in case you'd rather do the changes ma
 
 To take into account the magnetometer offset in the DataLog (data printed to the terminal) so that it matches the BLE GATT data being transferred, the magnetometer offset was subtracted from the read magnetometer values. Additionally, the data was printed as bytearrays to the terminal for correlation when parsing the data when being received in Python. This is not a substantial change, but it is helpful when debugging. The following lines can be added to the `SendMotionData()` function in main.c, right under the `BSP_GYRO_Get_Axes()` function call (line 941):
 
-```
+```cpp
 #ifdef ALLMEMS1_DEBUG_NOTIFY_TRAMISSION
   int16_t acc_x_to_send, acc_y_to_send, acc_z_to_send;
   int16_t gyr_x_to_send, gyr_y_to_send, gyr_z_to_send;

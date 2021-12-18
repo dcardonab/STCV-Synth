@@ -171,7 +171,7 @@ class Screen:
                 for handNumber in range(self.detector.hand_count()):
                     # lmList is a list of all landmarks present in the screen.
                     lmList = self.detector.find_position(
-                        self.frame, hand_number=handNumber, draw=False
+                        self.frame, hand_number=handNumber, draw=True
                     )
                     if lmList != 0:
                         self.event_processing(lmList)

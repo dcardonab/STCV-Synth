@@ -25,13 +25,14 @@
 
 ## Debian and Ubuntu
 
-**NEEDS UPDATE**
+1. Follow step 1 of the Mac and Windows version to create a virtual environment.
 
-1. Follow these instructions to install **Pyo**:
-    * http://ajaxsoundstudio.com/pyodoc/compiling.html#debian-ubuntu-apt-get
-    * *Note that this series of commands will also install pip, which is required for step 2.*
+2. Install all dependencies in your virtual environment. With you virual environment activated, you may run the following commands to install the necessary libraries:
+    *We separated the synth and the analysis libraries into two different files, and recommend using individual virtual environments for each.*
 
-2. Run: `pip install -r requirements_linux.txt`
+    * To install all **synth** dependencies, run: `pip install -r requirements_synth_linux.txt`
+
+    * To install all **analysis** dependencies, run: `pip install -r requirements_analysis_linux.txt`
 
 
 ## NVIDIA Jetson Nano
