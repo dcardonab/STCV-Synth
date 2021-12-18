@@ -54,6 +54,101 @@ With MediaPipe, hand landmarks are easily identified. The MediaPipe abilities we
 Using MediaPipe and combined with OpenCV for Python provided for basis for a touchless user interface. 
 
 ## User Interface
+Computer vision forms the basis of the user interface. The user interface makes use of two primary libraries: MediaPipe and OpenCV.  OpenCV is the rendering platform for all user controls. The visual interface of visual controls that are rendered on the screen to provide the grahical interface. These controls are not accessed via mouse and keyboard, but virtually through computer vision. All user controls were created by this project team, since the project is unaware of any applicable OpenCV controls that could adapted to this project. That is not to say that OpenCV does not have user interface controls as part of the library, it does.  Those controls did not meet the project requirements.
+
+The following is an example of the __init__ function for a user interface class written for the project. As seen below, the parameters of the class define the user interface.
+
+```python
+class PlusMinusButtons:
+    """
+    Base Class for Button-based GUI elements.
+    """
+    def __init__(
+        self, x: int, y: int,
+        label: str = "Label", label_offset_x: int = 50,
+        min_value: int = 1, max_value: int = 100,
+        text_color: Tuple[int, int, int] = (255, 255, 255),
+        btm_text_color: Tuple[int, int, int] = (4, 201, 126),
+        back_color: Tuple[int, int, int] = (255, 255, 255),
+    ) -> None:
+
+        # Screen Coordinates.
+        self.x1 = x         # Left
+        self.y1 = y         # Top
+        self.x2 = x + 50    # Right (Length)
+        self.y2 = y + 50    # Bottom (Height)
+
+        # Button Design.
+        self.label = label                              # Button Label
+        self.text_color = text_color                    # Text color for label
+        self.btm_text_color = btm_text_color            # Text color for botton
+        self.back_color = back_color                    # BG color
+        self.label_offset_x = self.x1 + label_offset_x  # Distance from button
+
+        # Create a bounding boxes to detect collisions against the buttons.
+        self.minus_bounding_box = create_rectangle_array(
+            (self.x1, self.y1), (self.x2, self.y2)
+        )
+        self.plus_bounding_box = create_rectangle_array(
+            (self.x1 + 100, self.y1), (self.x2 + 100, self.y2)
+        )
+
+        # Set range of GUI element.
+        self.min_value = min_value
+        self.max_value = max_value
+
+```
+These setting then drive the rendering of the control using OpenCV method calls. 
+```python
+    def render(self, img):
+        # Create the minus button rectangle.
+        cv2.rectangle(
+            img, (self.x1, self.y1), (self.x2, self.y2),
+            self.back_color, cv2.FILLED
+        )
+
+        # Add the 'minus' sign text.
+        # The order of drawing sets the display order.
+        cv2.putText(
+            img, "-", (self.x1 + 12, self.y1 + 35),
+            cv2.FONT_HERSHEY_SIMPLEX, 1, self.btm_text_color,
+            2, cv2.LINE_AA
+        )
+
+        # Create the plus button rectangle.
+        cv2.rectangle(
+            img, (self.x1 + 100, self.y1), (self.x2 + 100, self.y2),
+            self.back_color, cv2.FILLED,
+        )
+
+        # Add the 'plus' sign text.
+        cv2.putText(
+            img, "+", (self.x1 + 112, self.y1 + 35),
+            cv2.FONT_HERSHEY_SIMPLEX, 1, self.btm_text_color,
+            2, cv2.LINE_AA
+        )
+
+        # Draw the label of the control.
+        cv2.putText(
+            img, self.label, (self.label_offset_x, self.y2),
+            cv2.FONT_HERSHEY_SIMPLEX, 1, self.text_color,
+            2, cv2.LINE_AA
+        )
+
+        # Draw the currently selected value
+        cv2.putText(
+            img, str(self.value), (self.x2 + 150, self.y2),
+            cv2.FONT_HERSHEY_SIMPLEX, 1, self.text_color,
+            2, cv2.LINE_AA
+        )
+
+        # Return drawn controls overlaid on the image.
+        return img
+
+
+```
+Thus, the graphical user interface classes hold the configuration parameterss, and define the rendering logic that OpenCV provides the image on which these controls are rendered. How then do user actions reach the logic of the application? The answer is MediaPipe. 
+
 
 
 ## Data
@@ -79,14 +174,35 @@ The input and output of arctan look as follows:
 When viewed in three dimensions, the graph appears as follows
 ![arctan](arctan01.png)
 
-Obviously the output of arctan, arctan2 was used in the python code, is nonlinear. Hence, the value of applying linear regression to components of Euler Angles will yield difficulties in fitting data. And indeed, that was seen in the calculations of linear regression.  These calculations are presented in _stcv_linear_regressiondorian_bpm100_00_motion.ipynb_ 
+Obviously, the output of arctan, arctan2 was used in the python code, is nonlinear. Hence, the value of applying linear regression to components of Euler Angles will yield difficulties in fitting data. And indeed, that was seen in the calculations of linear regression.  These calculations are presented in _stcv_linear_regressiondorian_bpm100_00_motion.ipynb_ 
 
-Within that notebook, the data operations begin with an investigation of correlations from a general sense. The approach being the no assumptions were made about the relationships with the data. Starting with data features with the highest correlations, several graphs were made demonstrating the relationships.  
+Within that notebook, the data operations begin with investigating correlations from a general sense. The approach was the no assumptions were made about the relationships with the data. Starting with data features with the highest correlations, several graphs were made demonstrating the relationships.  
 ![accelartion_y_vs_phi](acceleration_y_vs_phi.png)
 
 ![phi_vs_acceleration_x](phi_vs_acceleration_x.png)
 
 ![phi_vs_acc_x_vs_acc_y](phi_vs_acc_x_vs_acc_y.png)
+
+It is with these graphs that the underlying functions that is nonlinear can be visualized. Nor would a clustering analysis lead to a proper conclusion.  Hence, the data graphs provide significant insight into the data realities produced by the sensor tile. So given that Euler angles include nonlinear functions, it is now known that the use of Euler angles can be approximated with linear regression with any accurate accuracy.  For example, assuming a second-degree polynomial versus a fourth-degree polynomial does not significantly improve the performance of linear regression. 
+
+![second_degree](second_degree.png)
+
+![fourth_degree](fourth_degree.png)
+
+It was determined that the use of Euler angles posed significant challenges for linear regression. The best R-squared for training set using a fourth-degree polynomial was: 0.5315. These results are documented in stcv_linear_regressiondorian_bpm100_00_motion.ipynb in the _analysis_ directory.
+
+### Quaternions
+The project also experimented with quaternions. Compared with Euler angles, linear regression proved much more successful, although the experiments were not the same. The experiments were different because quaternions act much differently than Euler angles, even though they can describe the same actions. 
+
+The principal investigation of quaternions appear in the notebook _notebook_A_dorian_bpm100_06_quaternions.ipynb_. The investigation demonstrates that quaternions can be more readily used with linear regression. In fact, experiments demonstrate a possible R-squared for training set of 1.0000 when using a third degree polynomial. 
+
+Fundamentally, graphs of the project data show a fundamental data structure 
+that differs from Euler angle actions, as seen in the following graphs. 
+![quaternion1](quaternion1.png)
+![quaternion_cloud](quaternion_cloud.png)
+A complete investigation can be reviewed in _notebook_A_dorian_bpm100_06_quaternions.ipynb_.
+
+
 ## References
 
 Lee, W.-M. (2019). Python Machine Learning. Wiley.
