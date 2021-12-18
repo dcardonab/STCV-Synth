@@ -55,6 +55,7 @@ Using MediaPipe and combined with OpenCV for Python provided for basis for a tou
 
 ## User Interface
 
+
 ## Data
 As part of the programming, logging code was developed to capture all data specific to the data received from the sensor tile. This code tracked data such as acceleration, magnitude, Euler angles, and other items.  The data exists under the project root in the folders _analysis->renderExamples_.  Two files, dorian_bpm100_00_motion.csv and A_dorian_bpm100_06_quaternions.csv, are examined in more depth via Python notebooks. 
 
@@ -64,8 +65,7 @@ The project logged application data for the purpose of analysis.  An analysis is
 The purpose behind the analyis was to determine the difficulties that might be encounters should the project again attempt to apply machine learning to the applications problem sets. In our numerical experimentations we focused on two main areas, Euler Angles and Quaternion input and outputs. 
 
 ### Euler Angles
-The first perspective found in stcv_linear_regressiondorian_bpm100_00_motion.ipynb looks at the data from the perspective of using Euler angles to track motion. Euler angles, while simple to understand and computer do seem to create problems from a mathematical perspection.  In part, this difficulty comes from the trignometric identities used to compute Euler Angles.  Given that the computation of roll, pitch, and yawl, it is in the calculations of $phi$ that creates interesting difficulties. The difficulties arise from the use of the arctan function.
-
+The first perspective found in stcv_linear_regressiondorian_bpm100_00_motion.ipynb looks at the data from using Euler angles to track motion. Euler angles, while simple to understand and computer, seem to create problems from a mathematical perspection.  In part, this difficulty comes from the trignometric identities used to compute Euler Angles.  Given that the computation of roll, pitch, and yawl in the calculations of $phi$ that creates interesting difficulties. The difficulties arise from the use of the arctan function.
 $$
 \phi = \arctan \left(\frac{acc_y}{acc_x}  \right)
 $$
@@ -79,9 +79,14 @@ The input and output of arctan look as follows:
 When viewed in three dimensions, the graph appears as follows
 ![arctan](arctan01.png)
 
-Obviously the output of arctan, arctan2 was used in the python code, in nonlinear. Hence, the value of applying linear regression to components of Euler Angles will yield difficulties in fitting data. And indeed, that was seen in the calculations of linear regression.  These calculations are presented in _stcv_linear_regressiondorian_bpm100_00_motion.ipynb_ 
+Obviously the output of arctan, arctan2 was used in the python code, is nonlinear. Hence, the value of applying linear regression to components of Euler Angles will yield difficulties in fitting data. And indeed, that was seen in the calculations of linear regression.  These calculations are presented in _stcv_linear_regressiondorian_bpm100_00_motion.ipynb_ 
 
+Within that notebook, the data operations begin with an investigation of correlations from a general sense. The approach being the no assumptions were made about the relationships with the data. Starting with data features with the highest correlations, several graphs were made demonstrating the relationships.  
+![accelartion_y_vs_phi](acceleration_y_vs_phi.png)
 
+![phi_vs_acceleration_x](phi_vs_acceleration_x.png)
+
+![phi_vs_acc_x_vs_acc_y](phi_vs_acc_x_vs_acc_y.png)
 ## References
 
 Lee, W.-M. (2019). Python Machine Learning. Wiley.
