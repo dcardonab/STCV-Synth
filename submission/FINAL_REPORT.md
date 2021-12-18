@@ -35,11 +35,21 @@ The neural network calculated probabilities of which sign language system was be
 
 In the end, while the neural networks were easily trained, the accuracy was not comparable to MediaPipe. MediaPipe provides the ability to recognize hands and landmarks assigned by MediaPipe with astonishing ease.  Further, the landmarks provided by MediaPipe provided a simple hand coordinate system that allowed the STCV to become more sophisticated than sign language training of the neural network easily allowed. Simply put, MediaPipe provides more capability with substantially less effort. 
 
-Thus, the code in action_classification.py demonstrates computer vision and a neural network training of sign language, the code is not part of the end product. 
+Thus, the code in action_classification.py demonstrates computer vision and a neural network training of sign language, the code is not part of the end product. The fitting and predictition developed reasonable results but still fell short in that following ways.  
+
+### False Results
+
+When using a trained model, the developed algorithm determines the most probable label from the set of labels found in the data.  However, what happens when there is not actual label condition present? In those cases, the training would still attempt to make predictions.  While this scenario could have relieved with addition programming, the situation was entirely bypassed with MediaPipe. If there was no hands present in the computer vision field of view, false positives were almost completely avoid
+
+### Significant Training Costs
+
+Google trained MediaPipe trained with a dataset larger than anything the STCV application could accomplish. "To obtain ground truth data, we have manually annotated ~30K real-world images with 21 3D coordinates..." (Google, LLC, 2020). For the project research, code was written to assist in the capturing of images to build model training data.  This work required time and patience since the quality of the images have to be suitable as exemplars.  Early results indicated the building model training data would be time consuming without yielding a superior product to MediaPipe.   
 
 ## MediaPipe Computer Vision
 
-With MediaPipe, hand landmarks are easily identified. In fact, the MediaPipe abilities were discovered as a result of the neural network training. Renotte makes use of MediaPipe to extract the landmarks into numpy arrays
+With MediaPipe, hand landmarks are easily identified. In fact, the MediaPipe abilities were discovered as a result of the neural network training. Renotte makes use of MediaPipe to extract the landmarks into numpy arrays that are then submitted to fitting and prediction.  MediaPipe provides "precise keypoint localization of 21 3D hand-knuckle coordinates inside the detected hand regions via regression, that is direct coordinate prediction." (Google, LLC, 2020) Direct coordinate predication gave the project that ability recognize figure movements exactly. MediaPipe provided for specific finger identification. Once the application could identify finger positions percisely, the application could then substitute the touch interface for a computer vision interface.
+
+![Hand landmarks](handlandmarks.png) (Google, LLC, 2020)
 
 ## Data Analysis
 
