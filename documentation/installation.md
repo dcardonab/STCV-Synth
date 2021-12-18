@@ -4,9 +4,23 @@
 
 *Note that you will need at least Python 3.8 to run STCV-Synth, as it heavily relies on the `asyncio` module. If you have a previous Python 3 version, you will need to update it. You may check you Python 3 by running `python3 -V` in a terminal prompt.*
 
-* To install all **synth** dependencies, run: `pip install -r requirements_synth.txt`
+1. Create a virtual environment:
 
-* To install all **analysis** dependencies, run: `pip install -r requirements_analysis.txt`
+    1. If you do not have the **virutalenv** library, you may install it with: `pip install virtualenv` or `pip3 install virtualenv`
+
+    2. Create a virtual environment for your synth. Run: `virtualenv venv`
+
+    3. Activate virtual environment. Run: `source venv/bin/activate`
+        * A virtual environment offers a way to isolate all of the installed packages from your system's installed packages, which allows better compatibility in terms of the available versions for these packages.
+
+        * You may deactivate your virtual environment at any time with the command `deactivate`
+
+2. Install all dependencies in your virtual environment. With you virual environment activated, you may run the following commands to install the necessary libraries:
+    *We separated the synth and the analysis libraries into two different files, and recommend using individual virtual environments for each.*
+
+    * To install all **synth** dependencies, run: `pip install -r requirements_synth.txt`
+
+    * To install all **analysis** dependencies, run: `pip install -r requirements_analysis.txt`
 
 
 ## Debian and Ubuntu
@@ -21,12 +35,15 @@
 
 
 ## NVIDIA Jetson Nano
+*Please note that at this moment, it is possible to run the SensorTile controller and the synthesizer engine on the NVIDIA Jetson Nano as long as Python 3.7 or higher is installed. The computer vision controller however relies on MediaPipe, and have so far been unsuccessful installing MediaPipe when the Python version in 3.7 or higher. We're working on this to ensure that both controllers are able to run, and hope to see successful results soon. Once everything is running, these instructions will be updated accordingly.*
 
 1. Update and upgrade apt and apt-get. Run:
     * `sudo apt update && sudo apt upgrade`
     * `sudo apt-get update && sudo apt-get upgrade`
 
 2. Install Python 3.8 and pip:
+    *Though we were able to install Python 3.8, the final installation of MediaPipe was unsuccessful in the NVIDIA Jetson Nano. We have decided to attempt installing MediaPipe using a third-party wheel for Python 3.6 that is available online. If the installation of MediaPipe is successful, we will update the main.py asyncio functions that are incompatible with older versions of Python (e.g., run()), as well as these instructions.*
+
     1. Run: `sudo apt install python3.8`
 
     2. Add Python 3.6 and 3.8 to update-alternatives. Run:
@@ -93,6 +110,8 @@
         * `python setup.py bdist_wheel`
 
 8. Install MediaPipe from pre-built wheel:
+    *This step has proven to be difficult, as the wheel has not built in the NVIDIAN Jetson Nano.*
+
     1. Download wheel from GitHub. Run: `git clone https://github.com/jiuqiant/mediapipe_python_aarch64.git`
     
     2. Go to cloned repo: `cd mediapipe_python_aarch64`
