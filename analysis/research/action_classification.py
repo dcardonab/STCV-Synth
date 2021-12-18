@@ -85,7 +85,7 @@ def extract_keypoints(results):
 
     If we don't have results we return np.array with zeros added
     :param results:
-    :return: np.concatenate([pose, face, left_hand, right_hand])
+    :return: np.concatenate([left_hand, right_hand])
     '''
     left_hand = np.array([[result.x, result.y, result.z] for result in results.left_hand_landmarks.landmark]).flatten() \
         if results.left_hand_landmarks else np.zeros(21 * 3)
@@ -93,7 +93,7 @@ def extract_keypoints(results):
         [[result.x, result.y, result.z] for result in results.right_hand_landmarks.landmark]).flatten() \
         if results.right_hand_landmarks else np.zeros(21 * 3)
 
-    # return np.concatenate([pose, face, left_hand, right_hand])
+    # return np.concatenate([left_hand, right_hand])
     return np.concatenate([left_hand, right_hand])
 
 def draw_landmarks(image, results):
