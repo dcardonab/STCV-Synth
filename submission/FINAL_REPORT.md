@@ -147,9 +147,26 @@ These setting then drive the rendering of the control using OpenCV method calls.
 
 
 ```
-Thus, the graphical user interface classes hold the configuration parameterss, and define the rendering logic that OpenCV provides the image on which these controls are rendered. How then do user actions reach the logic of the application? The answer is MediaPipe. 
+Thus, the graphical user interface classes hold the configuration parameters and define the rendering logic that OpenCV provides the image on which these controls are rendered. How then do user actions reach the logic of the application? The answer is MediaPipe. 
 
+MediaPipe provides landmark tracking of hands.  As discussed above, MediaPipe gives precise coordinates of each landmark point in a hand. As such, MediaPipe made it simple to do away with a mouse and keyboard for some operations.  
 
+Given that the application drew user controls, it meant that the boundaries of each control was already known.  To determine if the user was interacting with the controls meant simply running the calculations to see if the index finger control the application had fallen within the boundaries of the user control.  The logic for this was trivial, as seen in the following code from _cv_screen.py_.
+```python
+        def minus_btn_check_collision(self, x: int, y: int) -> Union[bool, None]:
+        """
+        Processes events for the minus botton collision (i.e., the
+        intersection between a finger landmark and the button).
+        """
+        # Ensure that decreasing the value would not exceed minumum.
+        if self.min_value < self.value:
+            point = Point(x, y)
+            # Decrease value if there was a collision.
+            if point_intersects(point, self.minus_bounding_box):
+                self.set_value(self.value - 1)
+                return True
+
+```
 
 ## Data
 As part of the programming, logging code was developed to capture all data specific to the data received from the sensor tile. This code tracked data such as acceleration, magnitude, Euler angles, and other items.  The data exists under the project root in the folders _analysis->renderExamples_.  Two files, dorian_bpm100_00_motion.csv and A_dorian_bpm100_06_quaternions.csv, are examined in more depth via Python notebooks. 
@@ -200,6 +217,7 @@ Fundamentally, graphs of the project data show a fundamental data structure
 that differs from Euler angle actions, as seen in the following graphs. 
 ![quaternion1](quaternion1.png)
 ![quaternion_cloud](quaternion_cloud.png)
+
 A complete investigation can be reviewed in _notebook_A_dorian_bpm100_06_quaternions.ipynb_.
 
 
