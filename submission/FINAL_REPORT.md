@@ -2,7 +2,7 @@
 
 The STCV-Synth is the first prototype in a series of devices designed to bring creative opportunities to people with disabilities. Additionally, these devices seek to provide novel mechanisms for creating interactive art performances.
 
-Specifically, the STCV-Synth is a music synthesizer made up of two main components, the engine and the controllers. The engine is implemented in Pyo, a Python audio DSP library. The controllers that operate and instruct the behavior of the engine are the SensorTile, by STMicroelectronics, and Computer Vision.
+Specifically, the STCV-Synth is a music synthesizer made up of two main components, the engine and the controllers. The engine is implemented in _pyo_, a Python audio DSP library. The controllers that operate and instruct the behavior of the engine are the SensorTile, by STMicroelectronics, and Computer Vision.
 
 
 # Introduction
@@ -28,7 +28,7 @@ In this section we have outlined our efforts and explorations towards designing 
 
 ## Synthesizer Engine
 
-We developed the engine in charge of generating the audio using `pyo`, a Python audio DSP library developed by Olivier Belanger, containing abstractions that successfully emulate the components that make up an audio synthesizer, including oscillators, filters, envelope generators, signal mixers, audio effects, digital audio device selectors, and other useful utilities.
+We developed the engine in charge of generating the audio using _pyo_, a Python audio DSP library developed by Olivier Belanger, containing abstractions that successfully emulate the components that make up an audio synthesizer, including oscillators, filters, envelope generators, signal mixers, audio effects, digital audio device selectors, and other useful utilities.
 
 The library and the documentation are very straight-forward and a lot of experimentation was performed with the selection of various audio generators (i.e., oscillators), filters, and audio effects.
 
@@ -40,7 +40,7 @@ The final engine architecture is contains:
 * 1 digital long-delay.
 * 1 algorithmic reverb.
 
-However, we encountered some difficulties at the time of getting Pyo to select the correct audio drivers in Linux. After extensive exploration, we discovered that the solution was instruction Linux to select the *default* audio device upon launching the Pyo audio server. Although this brought a solution, we still wanted to be able to automate this process. We directly wrote a GitHub issue, and Mr. Belanger pointed us towards some Pyo functions that would automatically choose the default audio device. This allowed us to programmatically select the adequate audio device for the performance, hence automating the whole audio server initialization routine.
+However, we encountered some difficulties at the time of getting _pyo_ to select the correct audio drivers in Linux. After extensive exploration, we discovered that the solution was instruction Linux to select the *default* audio device upon launching the _pyo_ audio server. Although this brought a solution, we still wanted to be able to automate this process. We directly wrote a GitHub issue, and Mr. Belanger pointed us towards some _pyo_ functions that would automatically choose the default audio device. This allowed us to programmatically select the adequate audio device for the performance, hence automating the whole audio server initialization routine.
 
 The simple code to achieve this, included in the `__init__` function of the `synth.py` file, is expressed in the following lines:
 ```python
@@ -100,7 +100,7 @@ if keyboard_interrupt_event.is_set():
 
 ```
 
-Just as it was important for us to automate the selection of the audio device when using Pyo, it was important for us to automate the selection of the SensorTile without inputting the MAC address of the device. For this, the `BleakScanner` would search for a device with a name property equal to the name of the device:
+Just as it was important for us to automate the selection of the audio device when using _pyo_, it was important for us to automate the selection of the SensorTile without inputting the MAC address of the device. For this, the `BleakScanner` would search for a device with a name property equal to the name of the device:
 
 ```python
 async def scan_ST_address(firmware_name: str) -> str:
@@ -198,7 +198,7 @@ async def motion_callback(self, data: bytearray) -> None:
 
 ```
 
-Once spherical coordinates were calculated, it was important to map the ranges of these functions to the synthesizer parameters. For this, various mapping functions were used. One of these functions (the Numpy function `interp`) mapped a number in a given input range to a number in a given output range in a linear scale. The second one (the `Map` function in Pyo) mapped a value between 0 and 1 to a given output value in a given scale, in this case a logarithmic scale.
+Once spherical coordinates were calculated, it was important to map the ranges of these functions to the synthesizer parameters. For this, various mapping functions were used. One of these functions (the _NumPy_ function `interp`) mapped a number in a given input range to a number in a given output range in a linear scale. The second one (the `Map` function in _pyo_) mapped a value between 0 and 1 to a given output value in a given scale, in this case a logarithmic scale.
 
 The magnitude of acceleration or radial distance was set to control various aspects of the envelope generator, which directly affects the amplitude of the signal, increasing loudness and intensity at higher acceleration magnitudes. The polar angle was set to control the low-pass filter cutoff frequency, allowing control of the audio signal's high-frequency content based on the rotation of the sensor. Finally, the azimuth angle was used to control how much reverberation was applied to the audio signal by controlling the balance between the unaffected and the reverberated signals.
 
@@ -354,9 +354,9 @@ It wasn't until we had figured out how to keep track of the real value that we r
 
 ### Concurrency
 
-A very important library for the development of our project was the Python library *asyncio*. In fact, *bleak* was implemented using *asyncio* in order to perform connectivity in a concurrent fashion. This allowed retrieving information from the callback handles as it became available without constraining the efficiency of the code, not to mention the importance of waiting for specific functions to complete, such as scanning for Bluetooth devices, and connecting to the SensorTile upon discovering it. Concurrency was further explored in the computer vision controller when we decided to perform the update function in a separate thread. An understanding of these concepts came from a series of write-ups by Real Python which explore when to use which kind of approach.
+A very important library for the development of our project was the Python library _asyncio_. In fact, _bleak_ was implemented using _asyncio_ in order to perform connectivity in a concurrent fashion. This allowed retrieving information from the callback handles as it became available without constraining the efficiency of the code, not to mention the importance of waiting for specific functions to complete, such as scanning for Bluetooth devices, and connecting to the SensorTile upon discovering it. Concurrency was further explored in the computer vision controller when we decided to perform the update function in a separate thread. An understanding of these concepts came from a series of write-ups by Real Python which explore when to use which kind of approach.
 
-Future implementations of the synthesizer will further explore concurrency by replacing the use of threading for multiprocessing. However, asynchronous connectivity needs to be maintained to satisfy BLE connectivity via *bleak*.
+Future implementations of the synthesizer will further explore concurrency by replacing the use of threading for multiprocessing. However, asynchronous connectivity needs to be maintained to satisfy BLE connectivity via _bleak_.
 
 
 ## Computer Vision 
@@ -392,33 +392,33 @@ model.fit(X_train, y_train, epochs=EPOCHS, callbacks=[tb_callback])
 
 ![Image Two](images/Selection_112.png)
 
-In the end, while the neural networks were easily trained, the accuracy was not comparable to MediaPipe. MediaPipe provides the ability to recognize hands and landmarks assigned by MediaPipe with astonishing ease.  Further, the landmarks provided by MediaPipe provided a simple hand coordinate system that allowed the STCV to become more sophisticated than sign language training of the neural network easily allowed. Simply put, MediaPipe provides more capability with substantially less effort. 
+In the end, while the neural networks were easily trained, the accuracy was not comparable to _MediaPipe_. _MediaPipe_ provides the ability to recognize hands and landmarks assigned by _MediaPipe_ with astonishing ease.  Further, the landmarks provided by _MediaPipe_ provided a simple hand coordinate system that allowed the STCV to become more sophisticated than sign language training of the neural network easily allowed. Simply put, _MediaPipe_ provides more capability with substantially less effort. 
 
 Thus, the code in action_classification.py demonstrates computer vision and a neural network training of sign language, the code is not part of the end product. The fitting and predictition developed reasonable results but still fell short in that following ways.  
 
 
 ### False Results
 
-When using a trained model, the developed algorithm determines the most probable label from the set of labels found in the data.  However, what happens when there is no actual label condition present? In those cases, the training would still attempt to make predictions.  While this scenario could have relieved additional programming, the situation was entirely bypassed with MediaPipe. If there were no hands present in the computer vision field of view, false positives were almost completely avoided
+When using a trained model, the developed algorithm determines the most probable label from the set of labels found in the data.  However, what happens when there is no actual label condition present? In those cases, the training would still attempt to make predictions.  While this scenario could have relieved additional programming, the situation was entirely bypassed with _MediaPipe_. If there were no hands present in the computer vision field of view, false positives were almost completely avoided
 
 
 ### Significant Training Costs
 
-Google trained MediaPipe trained with a dataset larger than anything the STCV application could accomplish. "To obtain ground truth data, we have manually annotated ~30K real-world images with 21 3D coordinates..." (Google, LLC, 2020). For the project research, code was written to assist in the capturing of images to build model training data.  This work required time and patience since the quality of the images had to be suitable as exemplars.  Early results indicated that building model training data would be time-consuming without yielding a superior product to MediaPipe.   
+Google trained _MediaPipe_ trained with a dataset larger than anything the STCV application could accomplish. "To obtain ground truth data, we have manually annotated ~30K real-world images with 21 3D coordinates..." (Google, LLC, 2020). For the project research, code was written to assist in the capturing of images to build model training data.  This work required time and patience since the quality of the images had to be suitable as exemplars.  Early results indicated that building model training data would be time-consuming without yielding a superior product to _MediaPipe_.   
 
 
 ## MediaPipe Computer Vision
 
-With MediaPipe, hand landmarks are easily identified. The MediaPipe abilities were discovered as a result of the neural network training. Renotte makes use of MediaPipe to extract the landmarks into NumPy arrays that are then submitted to fitting and prediction.  MediaPipe provides "precise keypoint localization of 21 3D hand-knuckle coordinates inside the detected hand regions via regression, that is direct, coordinate prediction." (Google, LLC, 2020) Direct, coordinated predication allowed the project to recognize finger movements exactly. MediaPipe provided for specific finger identification. Once the application could identify finger positions precisely, the application could then substitute the touch interface for a computer vision interface.
+With _MediaPipe_, hand landmarks are easily identified. The _MediaPipe_ abilities were discovered as a result of the neural network training. Renotte makes use of _MediaPipe_ to extract the landmarks into _NumPy_ arrays that are then submitted to fitting and prediction.  _MediaPipe_ provides "precise keypoint localization of 21 3D hand-knuckle coordinates inside the detected hand regions via regression, that is direct, coordinate prediction." (Google, LLC, 2020) Direct, coordinated predication allowed the project to recognize finger movements exactly. _MediaPipe_ provided for specific finger identification. Once the application could identify finger positions precisely, the application could then substitute the touch interface for a computer vision interface.
 
 ![Hand landmarks](images/handlandmarks.png) (Google, LLC, 2020)
 
-Using MediaPipe and combined with OpenCV for Python provided for basis for a touchless user interface. 
+Using _MediaPipe_ and combined with OpenCV for Python provided for basis for a touchless user interface. 
 
 
 ## Graphical User Interface
 
-Computer vision forms the basis of the user interface. The user interface makes use of two primary libraries: MediaPipe and OpenCV.  OpenCV is the rendering platform for all user controls. The visual interface of visual controls that are rendered on the screen to provide the grahical interface. These controls are not accessed via mouse and keyboard, but virtually through computer vision. All user controls were created by this project team, since the project is unaware of any applicable OpenCV controls that could adapted to this project. That is not to say that OpenCV does not have user interface controls as part of the library, it does.  Those controls did not meet the project requirements.
+Computer vision forms the basis of the user interface. The user interface makes use of two primary libraries: _MediaPipe_ and OpenCV.  OpenCV is the rendering platform for all user controls. The visual interface of visual controls that are rendered on the screen to provide the grahical interface. These controls are not accessed via mouse and keyboard, but virtually through computer vision. All user controls were created by this project team, since the project is unaware of any applicable OpenCV controls that could adapted to this project. That is not to say that OpenCV does not have user interface controls as part of the library, it does.  Those controls did not meet the project requirements.
 
 The following is an example of the __init__ function for a user interface class written for the project. As seen below, the parameters of the class define the user interface.
 
@@ -513,9 +513,9 @@ def render(self, img):
 
 ```
 
-Thus, the graphical user interface classes hold the configuration parameters and define the rendering logic that OpenCV provides the image on which these controls are rendered. How then do user actions reach the logic of the application? The answer is MediaPipe. 
+Thus, the graphical user interface classes hold the configuration parameters and define the rendering logic that OpenCV provides the image on which these controls are rendered. How then do user actions reach the logic of the application? The answer is _MediaPipe_. 
 
-MediaPipe provides landmark tracking of hands.  As discussed above, MediaPipe gives precise coordinates of each landmark point in a hand. As such, MediaPipe made it simple to do away with a mouse and keyboard for some operations.  
+_MediaPipe_ provides landmark tracking of hands.  As discussed above, _MediaPipe_ gives precise coordinates of each landmark point in a hand. As such, _MediaPipe_ made it simple to do away with a mouse and keyboard for some operations.  
 
 Given that the application drew user controls, it meant that the boundaries of each control was already known.  To determine if the user was interacting with the controls meant simply running the calculations to see if the index finger control the application had fallen within the boundaries of the user control.  The logic for this was trivial, as seen in the following code from _cv_screen.py_.
 
@@ -605,8 +605,66 @@ A complete investigation can be reviewed in _notebook_A_dorian_bpm100_06_quatern
 
 ## NVIDIA Jetson Nano
 
+We made big efforts in getting out code to run on the NVIDIA Jetson Nano, but run into numerous obstacles.
+
+As mentioned above, one big difficulty was getting _pyo_ (the audio DSP engine) to properly select the adequate audio device in Linux. This was initially solved in a manual fashion, and later automated.
+
+The next big obstacle was that we were heavily relying on _asyncio_, which had incorporated additional syntax and functions when transitioning from Python 3.6 to Python 3.7. The JetPack firmware (i.e., the firmware that runs on the Jetson Nano) ships with Python 3.6.9, and so we set out to updating Python to version 3.7. We were in fact successful in these endeavors, and condensed a list of instructions in the _installation.md_ file.
+
+This was however not the end of our troubles. It turns out that to get _MediaPipe_ to run on the Jetson Nano, it is fundamental to compile it. We went throught extensive testing and installation protocols offered in the _MediaPipe_ website to get this running, but were unsuccessful due to either the firmware or the hardware architecture of the Jetson Nano. We even found third-party pre-built wheels that we attempted to install in our systems but were unsuccessful. One of these wheels was for Python 3.8, and so we went through the trouble of updating our installation only to find that _MediaPipe_ would still not install. The other wheel that we found was available for Python 3.6, but this would represent updating our code to use more verbose methods of expressing comparable functions as to what we were using in the _asyncio_ portions of our custom software.
+
+With all these issues, we decided to once again try in the future, either when JetPack ships with a more recent version of Python, or when new versions of _MediaPipe_ become available, and hopefully these will allow installation on this system. One more test we foresee in our future is flashing the Jetson Nano to the firmware that relies on Python 3.6, and attempt installing _MediaPipe_. If this were to work, we are determined to go through the trouble of porting our code to a Python 3.6 compatible syntax with the purpose of successfully making our software portable.
+
 
 # Conclusions
+
+We believe that our project surpassed the expectations that we had. We were successful in developing a minimum viable product, and we able to go much further than we had initially set out. We were successful in our tests and ended up implementing new features and making use of mathematical concepts that were beyond what we had initially considered. The experience was so rewarding that we have in fact made plans to continue working towards turning this into a product that sees the light of day, whether that is as a commercial product, or as a therapeutic product. We have gone as far as recruiting Alvaro Ramirez into our team and are currently looking into applying to the Venture Program at Harvard Innovation Labs.
+
+We also arrived to some formal conclusions from the whole experience and from the specifics described above:
+
+* The STCV-Synth offers great performance capabilities.
+
+* IMU sensors and computer vision offer remarkable performance possibilities for artists and non-artists alike.
+
+* Alternative controllers open universal possibilities for creative expression.
+
+* Trigonometric functions and quaternions are powerful tools for describing motion.
+
+* Quaternions are optimal for data analysis and machine learning.
+
+* Hardware and firmware limitations in microcontrollers are constraining and more apt to low-level languages and libraries.
+
+* Image processing is better suited for multi-processor approaches.
+
+* MediaPipe offers better and more efficient results than custom trained models.
+
+
+# Future
+
+Our specific plans for the future are better outlined toward the bottom of the main _README.md_ file. However, in broad terms, our plans for the future include:
+
+* Features:
+
+    * Polyphony.
+
+    * Euler angles mapped to musical gestures.
+
+    * Sustain mode for the performer to determine when a note is triggered.
+
+    * Multi-sensor operation.
+
+* Optimization:
+
+    * Improve OpenCV execution, most likely relying on multi-processing.
+
+    * Decouple async queues for real-time improvements.
+
+    * Cross-platform GPU acceleration.
+
+    * Potentially porting code to a lower-level and potentially a compiled language.
+
+
+We have also decided to create a new engine and a new controller. The engine will be a video synthesizer, so that our controllers can be utilized in music and graphics creation, and the controller will be EEG based, so that we can bring creative expression opportunities to people with severe motion limitations.
 
 
 # References
@@ -614,6 +672,10 @@ A complete investigation can be reviewed in _notebook_A_dorian_bpm100_06_quatern
 Anderson, J. (n.d.). Speed Up Your Python Program With Concurrency – Real Python. Real Python. https://realpython.com/python-concurrency/
 
 Bélanger, O. (n.d.). Pyo 1.0.4 documentation. AJAX SOUND STUDIO. http://ajaxsoundstudio.com/pyodoc/
+
+Google LLC. (2020). Installation - mediapipe. Google. https://google.github.io/mediapipe/getting_started/install.html
+
+Google LLC. (2020). MediaPipe in Python - mediapipe. Google. https://google.github.io/mediapipe/getting_started/python.html
 
 Lee, W.-M. (2019). Python Machine Learning. Wiley.
 
