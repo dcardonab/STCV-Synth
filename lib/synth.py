@@ -42,10 +42,8 @@ class Synth():
         # Portaudio and Portaudio MIDI.
         self.server = Server(audio_sample_rate)
 
-        # Linux requires selecting the device with 'default' name.
-        # if platform == "linux":
-        #     self.server.setOutputDevice(pa_get_default_output())
-
+        # Set the default device of the computer (the one selected in the
+        # system's audio preferences) as the output device for the server.
         self.server.setOutputDevice(pa_get_default_output())
 
         # the boot() function boots the server.

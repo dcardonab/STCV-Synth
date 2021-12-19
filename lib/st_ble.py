@@ -296,13 +296,13 @@ async def scan_ST_address(firmware_name: str) -> str:
     try:
         # Scan BLE devices
         device = await BleakScanner.find_device_by_filter(
-            lambda device, _: device.name == ST_FIRMWARE_NAME,
+            lambda device, _: device.name == firmware_name,
             timeout=10.0
         )
         # print(f"\n\tFound {str(len(devices))} devices.")
         # Find SensorTile
         if device:
-            print(f"\n\tFound SensorTile with {ST_FIRMWARE_NAME} firmware.")
+            print(f"\n\tFound SensorTile with {firmware_name} firmware.")
             if platform == 'darwin':
                 print(f"\tUUID Address: {device.address}")
             else:

@@ -156,19 +156,22 @@ async def main():
                 (synth.pulse_rate * 0.9, 0.1)
             )))
 
-            # Set the amplitude of the delay effect in the mixer
+            # Set the amplitude of the delay effect in the mixer.
             synth.mixer.setAmp(1, 0, float(np.interp(
                 motion[1]['r'],
                 (MIN_ACC_MAGNITUDE, MAX_ACC_MAGNITUDE),
                 (0.1, 0.5)
             )))
 
+            # The polar angle controls the low-pass filter cutoff frequency.
             synth.filt.setFreq(synth.filt_map.get(float(np.interp(
                 motion[1]['theta'],
                 (MIN_TILT, MAX_TILT),
                 (0, 1)
             ))))
 
+            # The Azimuth angle controls the balance of reverb's dry and wet
+            # signals (i.e., unaffected and affected signals respectively).
             synth.reverb.setBal(float(np.interp(
                 motion[1]['phi'],
                 (MIN_AZIMUTH, MAX_AZIUMTH),
