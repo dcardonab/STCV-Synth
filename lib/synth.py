@@ -1,6 +1,5 @@
 # Python Libraries
 import os
-import multiprocessing as mp
 from sys import platform
 from typing import Union
 
@@ -32,16 +31,8 @@ class Synth():
             self.subdivision
             self.pulse_rate
     """
-    def __init__(self, queue):
-        """
-        Init routine for a class running in another process.
-        """
-        super(Synth, self).__init__()
-        self.daemon = True
-        self._terminated = False
-        self.q = queue
 
-    def init(self, audio_sample_rate: int) -> None:
+    def __init__(self, audio_sample_rate: int) -> None:
         """
         Create a synthesizer object by instantiating an audio server using
         Pyo. Additionally, declare an oscillator and envelope generator,
