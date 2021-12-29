@@ -1,5 +1,7 @@
 # Python Libraries
 import os
+import multiprocessing as mp
+from sys import platform
 from typing import Union
 
 # Third-Party Libraries
@@ -30,8 +32,16 @@ class Synth():
             self.subdivision
             self.pulse_rate
     """
+    def __init__(self, queue):
+        """
+        Init routine for a class running in another process.
+        """
+        super(Synth, self).__init__()
+        self.daemon = True
+        self._terminated = False
+        self.q = queue
 
-    def __init__(self, audio_sample_rate: int) -> None:
+    def init(self, audio_sample_rate: int) -> None:
         """
         Create a synthesizer object by instantiating an audio server using
         Pyo. Additionally, declare an oscillator and envelope generator,
@@ -42,9 +52,13 @@ class Synth():
         # Portaudio and Portaudio MIDI.
         self.server = Server(audio_sample_rate)
 
-        # Set the default device of the computer (the one selected in the
-        # system's audio preferences) as the output device for the server.
-        self.server.setOutputDevice(pa_get_default_output())
+        # Disable MIDI
+        self.server.deactivateMidi()
+
+        if platform == 'linux':
+            # Set the default device of the computer (the one selected in the
+            # system's audio preferences) as the output device for the server.
+            self.server.setOutputDevice(pa_get_default_output())
 
         # the boot() function boots the server.
         # booting the server includes:

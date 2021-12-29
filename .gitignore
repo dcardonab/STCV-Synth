@@ -14,10 +14,12 @@ __pycache__/
 # SensorTile Firmware working directory
 */firmwares
 
-# Renders
+# Renders and tests
 renders/
+tests/
 
 # Virtual Environments
+.venv
 .venv_analysis/
 .venv_synth/
 venv/

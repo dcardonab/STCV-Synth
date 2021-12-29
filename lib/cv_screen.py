@@ -18,17 +18,17 @@ class Screen:
     """
 
     def __init__(
-        self, screen_number: int = 0,
-        screen_size_x: int = 1280, screen_size_y: int = 720
+        self, camera_source: int = 0,
+        screen_width: int = 1280, screen_height: int = 720
     ) -> None:
 
         # VideoCapture is a class to capture images from video files,
         # image sequences, or cameras.
-        self.capture = cv2.VideoCapture(screen_number)
+        self.capture = cv2.VideoCapture(camera_source)
         # The the first argument is the CV property identifier and the second
         # is the value that is being assigned to that property.
-        self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, screen_size_x)
-        self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, screen_size_y)
+        self.capture.set(cv2.CAP_PROP_FRAME_WIDTH, screen_width)
+        self.capture.set(cv2.CAP_PROP_FRAME_HEIGHT, screen_height)
 
         # Limit buffer size property.
         self.capture.set(cv2.CAP_PROP_BUFFERSIZE, 3)
