@@ -1,6 +1,6 @@
 # Installation
 
-## MAC and Windows
+## MacOS, Windows, and Ubuntu
 
 *Note that you will need at least Python 3.8 to run STCV-Synth, as it heavily relies on the `asyncio` module. If you have a previous Python 3 version, you will need to update it. You may check you Python 3 by running `python3 -V` in a terminal prompt.*
 
@@ -18,21 +18,13 @@
 2. Install all dependencies in your virtual environment. With you virual environment activated, you may run the following commands to install the necessary libraries:
     *We separated the synth and the analysis libraries into two different files, and recommend using individual virtual environments for each.*
 
-    * To install all **synth** dependencies, run: `pip install -r requirements_synth.txt`
+    * To install all **synth** dependencies, run:
+        * `pip install -r requirements_synth.txt`
 
-    * To install all **analysis** dependencies, run: `pip install -r requirements_analysis.txt`
-
-
-## Debian and Ubuntu
-
-1. Follow step 1 of the Mac and Windows version to create a virtual environment.
-
-2. Install all dependencies in your virtual environment. With you virual environment activated, you may run the following commands to install the necessary libraries:
-    *We separated the synth and the analysis libraries into two different files, and recommend using individual virtual environments for each.*
-
-    * To install all **synth** dependencies, run: `pip install -r requirements_synth_linux.txt`
-
-    * To install all **analysis** dependencies, run: `pip install -r requirements_analysis_linux.txt`
+    * To install all **analysis** dependencies, run:
+        * `pip install -r requirements_analysis.txt`
+        
+        * In Ubuntu, run: `pip install -r requirements_analysis_linux.txt`
 
 
 ## NVIDIA Jetson Nano
