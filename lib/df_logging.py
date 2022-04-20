@@ -28,7 +28,7 @@ class data_frame_logger:
         if self.data_frame_logger is None:
             self.data_frame_logger = df
         else:
-            self.data_frame_logger = self.data_frame_logger.append(df)
+            self.data_frame_logger = pd.concat([self.data_frame_logger, df], axis=0, join='outer')
 
         if len(self.data_frame_logger) > self.max_record:
             await self.write_log()

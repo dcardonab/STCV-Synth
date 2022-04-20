@@ -1,6 +1,6 @@
 # Installation
 
-## MacOS, Windows, and Ubuntu
+## MacOS (Intel), Windows, and Ubuntu
 
 *Note that you will need at least Python 3.8 to run STCV-Synth, as it heavily relies on the `asyncio` module. If you have a previous Python 3 version, you will need to update it. You may check you Python 3 by running `python3 -V` in a terminal prompt.*
 
@@ -25,6 +25,25 @@
         * `pip install -r requirements_analysis.txt`
         
         * In Ubuntu, run: `pip install -r requirements_analysis_linux.txt`
+
+
+## MacOS (Silicon)
+1. Install [Anaconda](https://www.anaconda.com/products/distribution).
+
+2. Install STCV-Synth
+    * To install the **synth** dependencies:
+        1. Create and activate conda environment. Run:
+            * `conda create -n stcv_synth && conda activate stcv_synth`
+
+        2. Install conda and pip packages. Note that Python 3.9 is necessary due to the current distribution of Pyo. Run:
+            * `conda install python=3.9 numpy pandas shapely && pip install bleak mediapipe pyo`
+
+    * Install the **analysis** dependencies:
+        1. Create and activate conda environment. Run:
+            * `conda create -n stcv_synth-analysis && conda activate stcv_synth-analysis`
+
+        2. Install conda and pip packages. Note that Python 3.9 is necessary due to the current distribution of Pyo. Run:
+            * `conda install matplotlib notebook pandas`
 
 
 ## NVIDIA Jetson Nano

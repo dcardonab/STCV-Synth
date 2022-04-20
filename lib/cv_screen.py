@@ -192,8 +192,7 @@ class Screen:
 
         # Overwrites a subsection of the camera image using the button
         # images that were retrieved.
-        self.frame[0: self.header.shape[0], 0: self.header.shape[1]] = \
-            self.header
+        self.frame[0: self.header.shape[0], 0: self.header.shape[1]] = self.header
 
         if self.show_FPS:
             self.cur_time = time.time()
