@@ -21,5 +21,7 @@ tests/
 # Virtual Environments
 .venv
 .venv_analysis/
-.venv_synth/
 venv/
+
+# pylint
+.pylintrc

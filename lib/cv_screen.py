@@ -1,3 +1,8 @@
+"""
+Computer Vision controller to operate the Synthesizer. It is based in
+detecting the tip of the index finger as a feature to control GUI elements.
+"""
+
 # Python Libraries
 import os
 from threading import Thread
@@ -7,8 +12,8 @@ import time
 import cv2
 
 # Local Files
-from constants import SCALES, ST_WEARING_HAND, SYNTH_MODE
-from gui_elements import *
+from constants import SCALES
+import gui_assets
 from hand_tracking import HandDetector
 
 
@@ -39,14 +44,14 @@ class Screen:
         # Set Frames Per Second. This value will be used at the end of the
         # CV_loop function, when specifying how long to wait prior to the
         # next iteration.
-        self.FPS = 1 / 30
-        self.FPS_MS = int(self.FPS * 1000)
+        self.fps = 1 / 30
+        self.fps_ms = int(self.fps * 1000)
 
         # The header index defines whether to display the settings controls
         # or the performance controls.
         self.header_index = 0
-        self.overlayList = self.setup_header_list()
-        self.header = self.overlayList[self.header_index]
+        self.overlay_list = _setup_header_list()
+        self.header = self.overlay_list[self.header_index]
 
         self.detector = HandDetector(min_detection_confidence=0.50)
 
@@ -62,12 +67,12 @@ class Screen:
         self.cur_tick = 0
         self.prev_tick = 0
 
-        self.show_FPS = False
+        self.show_fps = False
 
-        self.init_controls()
+        self._init_gui_controls()
 
         # Run frame retrieval through a separate thread.
-        self.thread = Thread(target=self.update, args=())
+        self.thread = Thread(target=self._update, args=())
         # A daemon thread flag is used to allow the program to exit when
         # only daemon threads are left.
         self.thread.daemon = True
@@ -77,21 +82,25 @@ class Screen:
     #     self.update()
     #     self.render()
 
-    def init_controls(self) -> None:
+    def _init_gui_controls(self) -> None:
         """
+        Initialize GUI controls.
+
         Control initialization function, based on a graphics design pattern.
         Python prefers to have this all in the __init__ method, but this
         reduces readibility.
         """
 
-        """ Performance GUI Controls """
+        ############################
+        ### PERFORMANCE CONTROLS ###
+        ############################
 
         # The slider control is created here with all default values
-        self.bpm_slider = Slider()
+        self.bpm_slider = gui_assets.Slider()
 
         # Layout the coordinates and labels of the PlusMinusSubdivions controls
         # PlusMinusSubdivions is child control of the PlusMinusButtons
-        self.subdivision_buttons = GUI_Subdivions(
+        self.subdivision_buttons = gui_assets.SubdivisionsButtons(
             x=1000, y=270,
             label="Subdivision",
             label_offset_x=-175
@@ -99,7 +108,7 @@ class Screen:
 
         # Creating PlusMinusButtons instance as member variable
         # Layout the coordinates and labels of the PlusMinusButtons control
-        self.oct_base_buttons = PlusMinusButtons(
+        self.oct_base_buttons = gui_assets.PlusMinusButtons(
             x=1000, y=400,
             label="8ve Base",
             label_offset_x=-150,
@@ -108,52 +117,56 @@ class Screen:
 
         # Creating PlusMinusButtons instance as member variable
         # Layout the coordinates and labels of the PlusMinusButtons control
-        self.oct_range_buttons = PlusMinusButtons(
+        self.oct_range_buttons = gui_assets.PlusMinusButtons(
             x=1000, y=530,
             label="8ve Range",
             label_offset_x=-170,
             min_value=1, max_value=7
         )
 
-        """ Settings GUI Controls"""
+        #########################
+        ### SETTINGS CONTROLS ###
+        #########################
+
         # Creating Menu instance with control layout
         # Making use of the controls default layout values
         # The menu dictionary is used as the menu items
-        self.scales_menu = Menu(
+        self.scales_menu = gui_assets.Menu(
             x=200, y=100,
             menu_dictionary=SCALES,
             columns=2, rows=8
         )
 
-        # The Menu class is created from configurable dictionary, in this
-        # in this case a Pulse and Sustain menu items
-        self.pulse_sustain_menu = Menu(
-            x=750, y=100,
-            menu_dictionary=SYNTH_MODE,
-            btm_text_color=(255, 0, 0)
-        )
+        # # The Menu class is created from configurable dictionary, in this
+        # # in this case a Pulse and Sustain menu items
+        # self.pulse_sustain_menu = gui_assets.Menu(
+        #     x=750, y=100,
+        #     menu_dictionary=SYNTH_MODE,
+        #     btm_text_color=(255, 0, 0)
+        # )
 
-        # The Menu class is created from configurable dictionary, in this
-        # in this case a Left and Right menu items
-        self.st_wearing_hand_menu = Menu(
-            x=1000, y=100,
-            menu_dictionary=ST_WEARING_HAND,
-            btm_text_color=(255, 0, 255)
-        )
+        # # The Menu class is created from configurable dictionary, in this
+        # # in this case a Left and Right menu items
+        # self.st_wearing_hand_menu = gui_assets.Menu(
+        #     x=1000, y=100,
+        #     menu_dictionary=ST_WEARING_HAND,
+        #     btm_text_color=(255, 0, 255)
+        # )
 
     def init_values(self, synth) -> None:
+        """Initialize all screen GUI elements."""
         # Set initial GUI values to match the Synth settings.
         self.bpm_slider.set_bpm(int(60 / synth.bpm))
         self.subdivision_buttons.init_value(int(synth.subdivision))
-        self.oct_base_buttons.init_value(int(synth.base_key))
-        self.oct_range_buttons.init_value(synth.oct_range)
+        self.oct_base_buttons.set_value(int(synth.base_key))
+        self.oct_range_buttons.set_value(synth.oct_range)
 
         # Initialize Menus
         self.scales_menu.init_value(synth.scale[0])
-        self.pulse_sustain_menu.init_value(list(SYNTH_MODE.keys())[0])
-        self.st_wearing_hand_menu.init_value(list(ST_WEARING_HAND.keys())[0])
+        # self.pulse_sustain_menu.init_value(list(SYNTH_MODE.keys())[0])
+        # self.st_wearing_hand_menu.init_value(list(ST_WEARING_HAND.keys())[0])
 
-    def update(self) -> None:
+    def _update(self) -> None:
         """
         Computer Vision drawing and GUI operation logic.
         """
@@ -168,33 +181,36 @@ class Screen:
                     img=self.frame, draw=False
                 )
 
-                for handNumber in range(self.detector.hand_count()):
-                    # lmList is a list of all landmarks present in the screen.
-                    lmList = self.detector.find_position(
-                        self.frame, hand_number=handNumber, draw=True
+                for hand_number in range(self.detector.hand_count()):
+                    # landmark_list is a list of all landmarks present in the screen.
+                    landmark_list = self.detector.find_position(
+                        self.frame, hand_number=hand_number, draw=True
                     )
-                    if lmList != 0:
-                        self.event_processing(lmList)
+                    if landmark_list != 0:
+                        self._event_processing(landmark_list)
 
                 # Provision to prevent the toggle from staying engaged.
                 self.sensitivity += 1
                 if self.sensitivity > 500:
                     self.sensitivity = 0
 
-            # time.sleep(self.FPS)
+            # time.sleep(self.fps)
 
     def render(self) -> None:
+        """
+        Render logic
+        """
         # Display GUI controllers.
         if self.header_index == 0:
-            self.draw_performance_gui()
+            self._draw_performance_gui()
         else:
-            self.draw_settings_gui()
+            self._draw_settings_gui()
 
         # Overwrites a subsection of the camera image using the button
         # images that were retrieved.
         self.frame[0: self.header.shape[0], 0: self.header.shape[1]] = self.header
 
-        if self.show_FPS:
+        if self.show_fps:
             self.cur_time = time.time()
             self.cur_tick = cv2.getTickCount()
             fps = 1 / (self.cur_time - self.prev_time)
@@ -208,25 +224,9 @@ class Screen:
 
         # Display image in the screen context.
         cv2.imshow('frame', self.frame)
-        cv2.waitKey(self.FPS_MS)
+        cv2.waitKey(self.fps_ms)
 
-    def setup_header_list(self, folder_path: str = "lib/header") -> list:
-        """
-        Gather list of files to display as visual controls.
-        """
-        # Get images.
-        myList = os.listdir(folder_path)
-        myList.sort()
-
-        # Retrieve images into local list.
-        overlayList = []
-        for imPath in myList:
-            image = cv2.imread(f"{folder_path}/{imPath}")
-            overlayList.append(image)
-
-        return overlayList
-
-    def draw_performance_gui(self) -> None:
+    def _draw_performance_gui(self) -> None:
         """
         Draw the performance GUI controls.
         """
@@ -235,22 +235,24 @@ class Screen:
         self.frame = self.oct_range_buttons.render(self.frame)
         self.frame = self.oct_base_buttons.render(self.frame)
 
-    def draw_settings_gui(self) -> None:
+    def _draw_settings_gui(self) -> None:
         """
         Draw the settings GUI controls.
         """
         self.frame = self.scales_menu.render(self.frame)
-        self.frame = self.pulse_sustain_menu.render(self.frame)
-        self.frame = self.st_wearing_hand_menu.render(self.frame)
+        # self.frame = self.pulse_sustain_menu.render(self.frame)
+        # self.frame = self.st_wearing_hand_menu.render(self.frame)
 
-    def event_processing(self, lm_list):
+    def _event_processing(self, lm_list):
+        """
+        Event handler.
+        """
+
         # Get the node corresponding to the tip of the index finger. The
         # following values are the landmarks for any hand's index finger tips.
         x, y = lm_list[8][1:]
 
-        """
-        Check for GUI collisions.
-        """
+        # Check for GUI collisions.
         if y < 89:
             if 0 < x < 90:
                 # Ensure that finger is on toggle button for longer than 10
@@ -263,15 +265,15 @@ class Screen:
                     self.sensitivity = 0
 
                 # Retrieve button image to show.
-                self.header = self.overlayList[self.header_index]
+                self.header = self.overlay_list[self.header_index]
 
-        collision = self.check_collision(x, y)
+        collision = self._check_collision(x, y)
 
         # Reset sensitivity counter if a collision was detected.
         if collision:
             self.sensitivity = 0
 
-    def check_collision(self, x: int, y: int) -> bool:
+    def _check_collision(self, x: int, y: int) -> bool:
         """
         Check for collision against the various GUI items.
         """
@@ -295,7 +297,29 @@ class Screen:
             # Check for collision against settings GUI.
             else:
                 col = self.scales_menu.check_collision(x, y)
-                col = self.st_wearing_hand_menu.check_collision(x, y)
-                col = self.pulse_sustain_menu.check_collision(x, y)
+                # col = self.st_wearing_hand_menu.check_collision(x, y)
+                # col = self.pulse_sustain_menu.check_collision(x, y)
 
         return col
+
+
+
+########################
+### HELPER FUNCTIONS ###
+########################
+
+def _setup_header_list(folder_path: str="lib/header") -> list:
+    """
+    Gather list of files to display as visual controls.
+    """
+    # Get images.
+    my_list = os.listdir(folder_path)
+    my_list.sort()
+
+    # Retrieve images into local list.
+    overlay_list = []
+    for img_path in my_list:
+        image = cv2.imread(f"{folder_path}/{img_path}")
+        overlay_list.append(image)
+
+    return overlay_list

@@ -1,3 +1,5 @@
+"""Geometry functions."""
+
 # Python Libraries
 from typing import Tuple
 

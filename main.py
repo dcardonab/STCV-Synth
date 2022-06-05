@@ -1,4 +1,11 @@
+"""
+Synthesizer controlled via computer vision and a STMicroelectronics
+SensorTile. The script will automatically create an audio file using the Pyo
+audio DSP library.
+"""
+
 # Python Libraries
+import argparse
 import asyncio
 import signal
 import sys
@@ -8,18 +15,55 @@ import numpy as np
 
 # Local Files
 sys.path.append('lib')
-from lib.constants import *
-from lib.cv_screen import *
-from lib.df_logging import *
-from lib.st_ble import *
-from lib.synth import *
+from lib.constants import ST_FIRMWARE_NAME, ST_HANDLES, ST_SETTINGS
+from lib.cv_screen import Screen
+from lib.logger import Logger
+from lib.st_ble import find_st, SensorTile
+from lib.synth import Synth
+
+
+#######################
+### Input Arguments ###
+#######################
+
+parser = argparse.ArgumentParser()
+
+# Controller Args
+parser.add_argument("--st", action=argparse.BooleanOptionalAction, default=False)
+parser.add_argument("--cv", action=argparse.BooleanOptionalAction, default=True)
+parser.add_argument("--fps", action=argparse.BooleanOptionalAction, default=False)
+
+# Synth Args
+parser.add_argument("--sample_rate", type=int, default=48000)
+parser.add_argument("--tonal_center", default="A")
+parser.add_argument("--scale_mode", default="dorian")
+parser.add_argument("--base_multiplier", type=int, default=1)
+parser.add_argument("--octave_range", type=int, default=2)
+parser.add_argument("--bpm", type=int, default=100)
+parser.add_argument("--subdivision", type=int, default=16)
+
+args = parser.parse_args()
+
+synth_config = {
+    "sample_rate": 48000,
+    "tonal_center": args.tonal_center,
+    "scale_mode": args.scale_mode,
+    "base_multiplier": args.base_multiplier,
+    "octave_range": args.octave_range,
+    "bpm": args.bpm,
+    "subdivision": args.subdivision
+}
 
 
 async def main():
+    """
+    Complete execution of the synth.
+    """
 
-    """
-    INIT ESCAPE ROUTINE
-    """
+    ###########################
+    ### INIT ESCAPE ROUTINE ###
+    ###########################
+
     # The program will exit upon recieving a keyboard interrupt event.
     # Creating an asyncio event will allow the program to gracefully exit.
     # If instead a 'try/except' approach is used, the keyboard interrupt
@@ -36,60 +80,62 @@ async def main():
         lambda *args: keyboard_interrupt_event.set()
     )
 
-    """
-    INIT SYNTHESIZER ENGINE
-    """
+
+    ###############################
+    ### INIT SYNTHESIZER ENGINE ###
+    ###############################
+
     print("\n\n##### Initializing Synthesizer #####\n")
     # The server is initialized at a 48kHz sample rate.
-    synth = Synth(48000)
+    synth = Synth(synth_config)
     # 'sampletype' of 1 sets the bit depth to 24-bit int for audio recordings.
     synth.server.recordOptions(sampletype=1, quality=1)
 
-    """
-    INIT CONTROLLERS
-    """
+
+    ########################
+    ### INIT CONTROLLERS ###
+    ########################
+
     # Init SensorTile
     print("\n\n##### Initializing Controllers #####\n")
 
-    x = input("\tWould you like the SensorTile controller? (y/n) ")
-    if x.lower() == "y":
-        # Find ST address
-        ST_address = await find_ST(ST_FIRMWARE_NAME)
-    else:
-        ST_address = False
+    # Find ST address
+    st_address = await find_st(ST_FIRMWARE_NAME) if args.st else False
 
     # Connect to SensorTile if an address was found.
-    if ST_address:
+    if st_address:
         print("\n\tInitializing SensorTile\n")
         # Create a SensorTile object, and connect via
-        sensor_tile = SensorTile(ST_address)
+        sensor_tile = SensorTile(st_address)
         # Connect to ST
-        await sensor_tile.BLE_connect()
+        await sensor_tile.ble_connect()
+
 
     # Init Computer Vision
-    x = input("\n\n\tWould you like the computer vision controller? (y/n) ")
-    if x.lower() == "y":
+    if args.cv:
         print("\n\tInitializing OpenCV\n")
         screen = Screen()
 
         # Wait for OpenCV to initialize.
         await asyncio.sleep(1)
 
-        y = input("\n\tWould you like to display FPS? (y/n) ")
-        screen.show_FPS = True if y.lower() == "y" else False
+        # Expression will evaluate to true only when the FPS arg is true.
+        screen.show_FPS = bool(args.fps)
 
         screen.init_values(synth)
 
     else:
         screen = False
 
-    """
-    PRE-PERFORMANCE
-    """
+
+    #######################
+    ### PRE-PERFORMANCE ###
+    #######################
+
     # Get audio and log file path.
     out_path = synth.get_render_path()
 
-    if ST_address:
+    if st_address:
         # Enable notifications of SensorTile data and create logger for
         # DataFrames containing SensorTile data from each activated handle.
 
@@ -97,7 +143,7 @@ async def main():
         # environment_dfl = data_frame_logger(f"{out_path}_environment.csv")
 
         await sensor_tile.start_notification(ST_HANDLES['motion'])
-        motion_dfl = data_frame_logger(f"{out_path}_motion.csv")
+        motion_dfl = Logger(f"{out_path}_motion.csv")
 
         # await sensor_tile.start_notification(ST_HANDLES['quaternions'])
         # quaternions_dfl = data_frame_logger(f"{out_path}_quaternions.csv")
@@ -109,15 +155,18 @@ async def main():
         # Start frame update thread
         screen.thread.start()
 
-    """
-    PERFORMANCE
-    """
+
+    ###################
+    ### PERFORMANCE ###
+    ###################
+
     print("\n\n##### Starting performance #####\n")
+
     # The running method of a keyboard listener returns a boolean depending
     # on whether the listener is running or not.
     while True:
         # Get and log ST data
-        if ST_address:
+        if st_address:
             # Get data from Queues, create data frames, and add to logger.
 
             # environment = await sensor_tile.environment_data.get()
@@ -132,41 +181,43 @@ async def main():
             # quaternions_dataframe = quaternions_dfl.new_record(quaternions)
             # await quaternions_dfl.add_record(quaternions_dataframe)
 
-            """
-            Set Synth values from ST motion data.
-            """
+
+            #############################################
+            ### Set Synth values from ST motion data. ###
+            #############################################
+
             # The magnitude of acceleration will control various parameters
             # of the envelope generator, including attack, amplitude
             # multiplier, and duration.
             synth.amp_env.setAttack(float(np.interp(
                 motion[1]['r'],
-                (MIN_ACC_MAGNITUDE, MAX_ACC_MAGNITUDE),
+                (ST_SETTINGS["min_acc_magnitude"], ST_SETTINGS["max_acc_magnitude"]),
                 (synth.pulse_rate * 0.9, 0.01)
             )))
 
             synth.amp_env.setMul(float(np.interp(
                 motion[1]['r'],
-                (MIN_ACC_MAGNITUDE, MAX_ACC_MAGNITUDE),
+                (ST_SETTINGS["min_acc_magnitude"], ST_SETTINGS["max_acc_magnitude"]),
                 (0.25, 0.707)
             )))
 
             synth.amp_env.setDur(float(np.interp(
                 motion[1]['r'],
-                (MIN_ACC_MAGNITUDE, MAX_ACC_MAGNITUDE),
+                (ST_SETTINGS["min_acc_magnitude"], ST_SETTINGS["max_acc_magnitude"]),
                 (synth.pulse_rate * 0.9, 0.1)
             )))
 
             # Set the amplitude of the delay effect in the mixer.
             synth.mixer.setAmp(1, 0, float(np.interp(
                 motion[1]['r'],
-                (MIN_ACC_MAGNITUDE, MAX_ACC_MAGNITUDE),
+                (ST_SETTINGS["min_acc_magnitude"], ST_SETTINGS["max_acc_magnitude"]),
                 (0.1, 0.5)
             )))
 
             # The polar angle controls the low-pass filter cutoff frequency.
             synth.filt.setFreq(synth.filt_map.get(float(np.interp(
                 motion[1]['theta'],
-                (MIN_TILT, MAX_TILT),
+                (ST_SETTINGS["min_tilt"], ST_SETTINGS["max_tilt"]),
                 (0, 1)
             ))))
 
@@ -174,7 +225,7 @@ async def main():
             # signals (i.e., unaffected and affected signals respectively).
             synth.reverb.setBal(float(np.interp(
                 motion[1]['phi'],
-                (MIN_AZIMUTH, MAX_AZIUMTH),
+                (ST_SETTINGS["min_azimuth"], ST_SETTINGS["max_azimuth"]),
                 (0, 0.707)
             )))
 
@@ -182,12 +233,14 @@ async def main():
         # This includes all visual GUI controls.
         if screen:
             screen.render()
-            """
-            Update Synth parameters based on CV controllers.
-            """
+
+            ########################################################
+            ### Update Synth parameters based on CV controllers. ###
+            ########################################################
+
             # Update synth BPM if it changed in the GUI.
-            if synth.bpm != 60 / screen.bpm_slider.BPM:
-                synth.set_bpm(screen.bpm_slider.BPM)
+            if synth.bpm != 60 / screen.bpm_slider.bpm:
+                synth.set_bpm(screen.bpm_slider.bpm)
                 # Apply new BPM to the pulsing rate.
                 synth.set_pulse_rate()
 
@@ -237,9 +290,11 @@ async def main():
         if keyboard_interrupt_event.is_set():
             break
 
-    """
-    SHUTDOWN ROUTINE
-    """
+
+    ########################
+    ### SHUTDOWN ROUTINE ###
+    ########################
+
     print("\n\n##### Shutdown Initialized #####")
 
     # Stop Synth
@@ -247,7 +302,7 @@ async def main():
     synth.stop_server()
 
     # Stop ST
-    if ST_address:
+    if st_address:
         # Stop notification characteristics and write logs to .csv files.
 
         # await sensor_tile.stop_notification(ST_HANDLES['environment'])
@@ -260,7 +315,7 @@ async def main():
         # await quaternions_dfl.write_log()
 
         # Disconnect from ST.
-        await sensor_tile.BLE_disconnect()
+        await sensor_tile.ble_disconnect()
 
     print("\n##### Performance Complete #####\n\n")
 

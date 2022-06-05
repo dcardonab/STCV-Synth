@@ -1,19 +1,11 @@
-"""
-SensorTile Constants
-"""
-ST_FIRMWARE_NAME = 'AM1V310'
+""" Constants for SensorTile and Synth. """
 
-# Accelerometer magnitude range
-# Since the accelerometer of the ST is calibrated to a maximum
-# value of 2G per axis, the approximate maximum magnitude will
-# be 3464 G. The minimum magnitude value will approximately be
-# 1030 G, according to tests that kept the ST stationary.
-MIN_ACC_MAGNITUDE = 1030
-MAX_ACC_MAGNITUDE = 3464
-MIN_TILT = 0
-MAX_TILT = 180
-MIN_AZIMUTH = -180
-MAX_AZIUMTH = 180
+
+############################
+### SENSORTILE CONSTANTS ###
+############################
+
+ST_FIRMWARE_NAME = 'AM1V310'
 
 # SensorTile GATT Handles
 ST_HANDLES = {
@@ -22,21 +14,30 @@ ST_HANDLES = {
     "quaternions": 28
 }
 
+# Accelerometer magnitude range
+# Since the accelerometer of the ST is calibrated to a maximum
+# value of 2G per axis, the approximate maximum magnitude will
+# be 3464 G. The minimum magnitude value will approximately be
+# 1030 G, according to tests that kept the ST stationary.
+ST_SETTINGS = {
+    "min_acc_magnitude": 1030,
+    "max_acc_magnitude": 3464,
+    "min_tilt": 0,
+    "max_tilt": 180,
+    "min_azimuth": -180,
+    "max_azimuth": 180
+}
+
 # Hand wearing the ST
 ST_WEARING_HAND = {
     "Left": 0,
     "Right": 1
 }
 
-"""
-Synthesizer Constants
-"""
-DEF_BASE_MULTIPLIER = 1
-DEF_BPM = 100
-DEF_SUBDIVISION = 16
-DEF_NUM_OCTAVES = 2
-DEF_SCALE = 'dorian'
-DEF_TONAL_CENTER = 'A'
+
+#############################
+### SYNTHESIZER CONSTANTS ###
+#############################
 
 # Performance Mode
 SYNTH_MODE = {

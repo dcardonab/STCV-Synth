@@ -1,3 +1,7 @@
+"""
+Logger stores sensor data into a CSV file.
+"""
+
 # Python Libraries
 import os
 from typing import Tuple
@@ -5,10 +9,11 @@ import uuid
 
 # Third-Patry Libraries
 import pandas as pd
-import numpy as np
 
 
-class data_frame_logger:
+class Logger:
+    """Class to store sensor data into CSV file."""
+
     def __init__(self, file_path: str, max_record: int = 10000) -> None:
         """
         file_path is the path to the log file
@@ -19,16 +24,19 @@ class data_frame_logger:
         self.file_path = file_path
         self.max_record = max_record
 
-    async def add_record(self, df: pd.DataFrame) -> None:
+    async def add_record(self, data_frame: pd.DataFrame) -> None:
         """
         Add_record uses the ability to combine two dataframes together
         if the there is no dataframe created, the first dataframes forms the
         main table.
         """
         if self.data_frame_logger is None:
-            self.data_frame_logger = df
+            self.data_frame_logger = data_frame
         else:
-            self.data_frame_logger = pd.concat([self.data_frame_logger, df], axis=0, join='outer')
+            self.data_frame_logger = pd.concat(
+                [self.data_frame_logger, data_frame],
+                axis=0, join='outer'
+            )
 
         if len(self.data_frame_logger) > self.max_record:
             await self.write_log()
@@ -76,6 +84,6 @@ class data_frame_logger:
         record_uuid = uuid.uuid4()
 
         # returning a pandas dataframe to be merged with other data frames
-        df = pd.DataFrame(record, index=[str(record_uuid)])
+        data_frame = pd.DataFrame(record, index=[str(record_uuid)])
 
-        return df
+        return data_frame

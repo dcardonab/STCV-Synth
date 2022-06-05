@@ -1,5 +1,6 @@
+""" Bleak wrapper to get data from the STMicroelectronics SensorTile. """
+
 # Python Libraries
-from ctypes import sizeof
 from struct import unpack_from
 from sys import platform
 from typing import Union
@@ -9,11 +10,16 @@ from bleak import BleakClient, BleakError, BleakScanner
 import numpy as np
 
 # Local Files
-from constants import ST_FIRMWARE_NAME, ST_HANDLES
-from droppingLifoQueue import droppingLifoQueue
+from constants import ST_HANDLES
+from dropping_lifo_queue import DroppingLifoQueue
 
 
 class SensorTile():
+    """
+    STMicroelectronics SensorTile object handling accelerometer, quaternion,
+    and environmental data via BLE.
+    """
+
     def __init__(self, address: str) -> None:
         """
         The SensorTile object contains the MAC address (or UUID address in
@@ -45,22 +51,22 @@ class SensorTile():
         self.client = BleakClient(self.address)
         # A LiFo Queue will ensure that the most recent registered
         # ST data is retrieved
-        self.environment_data = droppingLifoQueue(maxsize=1)
-        self.motion_data = droppingLifoQueue(maxsize=1)
-        self.quaternions_data = droppingLifoQueue(maxsize=1)
+        self.environment_data = DroppingLifoQueue(maxsize=1)
+        self.motion_data = DroppingLifoQueue(maxsize=1)
+        self.quaternions_data = DroppingLifoQueue(maxsize=1)
 
         # In a relative quaternion, the initial value of the W (real)
         # component is 1. The information received from the ST is a
         # vector quaternion.
         self.quat_w = 1
 
-    async def BLE_connect(self) -> None:
+    async def ble_connect(self) -> None:
         """ Connect to SensorTile and ensure connection was established. """
         await self.client.connect()
         assert self.client.is_connected, "ST is not connected"
         print("\tConnected to SensorTile")
 
-    async def BLE_disconnect(self) -> None:
+    async def ble_disconnect(self) -> None:
         """ Disconnect from SensorTile """
         await self.client.disconnect()
         print("\tDisconnected from SensorTile.\n")
@@ -70,9 +76,9 @@ class SensorTile():
         Start receiving notifications from a given handle.
         """
         try:
-            await self.client.start_notify(char, self.notification_callback)
-        except Exception as e:
-            print(f"Error: {e}")
+            await self.client.start_notify(char, self._notification_callback)
+        except Exception as exception:
+            print(f"Error: {exception}")
 
     async def stop_notification(self, char: Union[int, str]) -> None:
         """
@@ -80,24 +86,24 @@ class SensorTile():
         """
         try:
             await self.client.stop_notify(char)
-        except Exception as e:
-            print(f"Error: {e}")
+        except Exception as exception:
+            print(f"Error: {exception}")
 
     # Add data to Queue
-    async def notification_callback(self, char: Union[int, str],
+    async def _notification_callback(self, char: Union[int, str],
                                     data: bytearray) -> None:
         """
         Redirect incoming notification data to the adequate callback function.
         """
         # Route incoming characteristics to the appropriate callback functions
         if char == ST_HANDLES['environment']:
-            await self.environment_callback(data)
+            await self._environment_callback(data)
         elif char == ST_HANDLES['motion']:
-            await self.motion_callback(data)
+            await self._motion_callback(data)
         else:
-            await self.quaternions_callback(data)
+            await self._quaternions_callback(data)
 
-    async def environment_callback(self, data: bytearray) -> None:
+    async def _environment_callback(self, data: bytearray) -> None:
         """
         Retrieve Environmental data from incoming bytearrays.
         The ST will send barometer data every 10ms.
@@ -121,7 +127,7 @@ class SensorTile():
         # Add data to Queue
         self.environment_data.put_nowait((time_stamp, environment_data))
 
-    async def motion_callback(self, data: bytearray) -> None:
+    async def _motion_callback(self, data: bytearray) -> None:
         """
         Retrieve Motion data from incoming bytearrays.
         Accelerometer, gyroscope, and magnetometer data will be sent by the
@@ -157,9 +163,9 @@ class SensorTile():
         motion_data['mag_y'] = result[8]
         motion_data['mag_z'] = result[9]
 
-        """
-        Calculate Orientation
-        """
+
+        # Calculate Orientation
+
         # * 'r' is radial distance (i.e., distance to origin), or magnitude
         # * 'theta' is polar angle (i.e., angle with respect to polar axis)
         # * 'phi' is azimuth angle (i.e., angle of rotation from initial
@@ -181,7 +187,7 @@ class SensorTile():
         # Add data to Queue
         self.motion_data.put_nowait((time_stamp, motion_data))
 
-    async def quaternions_callback(self, data: bytearray) -> None:
+    async def _quaternions_callback(self, data: bytearray) -> None:
         """
         Retrieve Quaternion data from incoming bytearrays.
         A group of three quaternions will be sent by the ST every 30ms.
@@ -204,37 +210,37 @@ class SensorTile():
         quat_data['raw_j'] = result[2]
         quat_data['raw_k'] = result[3]
 
-        """
-        Calculate Euler Angles
-        """
+
+        # Calculate Euler Angles
+
         # Normalize Incoming vector quaternion.
         norm = np.sqrt(np.dot(result[1:], result[1:]))
         vec_q = list(i / norm for i in result[1:]) \
             if norm > 0 else list(result[1:])
 
         # Add real component to the quaternion.
-        q = [self.quat_w] + vec_q
+        quat = [self.quat_w] + vec_q
 
         # Normalize all 4 quaternion values.
-        norm = np.sqrt(np.dot(q, q))
-        q = list(i / norm for i in q)
+        norm = np.sqrt(np.dot(quat, quat))
+        quat = list(i / norm for i in quat)
 
-        quat_data['norm_w'] = np.round(q[0], 2)
-        quat_data['norm_i'] = np.round(q[1], 2)
-        quat_data['norm_j'] = np.round(q[2], 2)
-        quat_data['norm_k'] = np.round(q[3], 2)
+        quat_data['norm_w'] = np.round(quat[0], 2)
+        quat_data['norm_i'] = np.round(quat[1], 2)
+        quat_data['norm_j'] = np.round(quat[2], 2)
+        quat_data['norm_k'] = np.round(quat[3], 2)
 
         # Roll is the rotation about the x axis.
         quat_data['roll'] = np.round(np.degrees(
             np.arctan2(
-                2 * (q[0] * q[1] + q[2] * q[3]),
-                1 - 2 * (q[1] ** 2 + q[2] ** 2)
+                2 * (quat[0] * quat[1] + quat[2] * quat[3]),
+                1 - 2 * (quat[1] ** 2 + quat[2] ** 2)
             )),
             2
         )
 
         # Pitch is the rotation about the y axis.
-        pitch = 2 * (q[0] * q[2] - q[1] * q[3])
+        pitch = 2 * (quat[0] * quat[2] - quat[1] * quat[3])
         # Prevent passing a value outside the arcsine input range,
         # which is -1 to 1 inclusive.
         if pitch > 1:
@@ -247,47 +253,47 @@ class SensorTile():
         # Yaw is the rotation about the z axis.
         quat_data['yaw'] = np.round(np.degrees(
             np.arctan2(
-                2 * (q[0] * q[3] + q[1] * q[2]),
-                1 - 2 * (q[2] ** 2 + q[3] ** 2)
+                2 * (quat[0] * quat[3] + quat[1] * quat[2]),
+                1 - 2 * (quat[2] ** 2 + quat[3] ** 2)
             )),
             2
         )
 
-        self.quat_w = q[0]
+        self.quat_w = quat[0]
 
         # Add data to Queue.
         self.quaternions_data.put_nowait((time_stamp, quat_data))
 
 
-async def find_ST(firmware_name: str) -> Union[str, None]:
+async def find_st(firmware_name: str) -> Union[str, None]:
     """
     Scan for addresses that match a given name, and then verify that
     the retrieved address is a string. If that is the case, then return
     the address. If not, offer the user the possibility to search again.
     """
     print("\n\tScanning BLE Devices")
-    search_for_ST = True
-    while search_for_ST:
+    search_for_st = True
+    while search_for_st:
         # Find SensorTile address
-        address = await scan_ST_address(firmware_name)
+        address = await _scan_st_address(firmware_name)
 
         # Check if an address was returned, and break scan
         # if ST address was found.
         if address:
             return address
-        else:
-            print("""
-            No SensorTile was found.
-            Please make sure your SensorTile is on.
-            If that does not work, ensure you flashed the correct firmware.
-            """)
 
-        x = input("\tWould you like to scan again? (y/n) ")
-        if x.lower() == "n":
+        print("""
+        No SensorTile was found.
+        Please make sure your SensorTile is on.
+        If that does not work, ensure you flashed the correct firmware.
+        """)
+
+        option = input("\tWould you like to scan again? (y/n) ")
+        if option.lower() == "n":
             return None
 
 
-async def scan_ST_address(firmware_name: str) -> str:
+async def _scan_st_address(firmware_name: str) -> str:
     """
     Scan for BLE devices that have the correct name property, and return
     the MAC address (or the UUID address in MacOS) for devices that match
@@ -311,38 +317,3 @@ async def scan_ST_address(firmware_name: str) -> str:
 
     except BleakError:
         print("\n\tPlease turn on your system's bluetooth device.\n")
-
-
-async def read_characteristic(client: BleakClient,
-                              char: Union[int, str]) -> bytearray:
-    """
-    Read value from BLE client's specified GATT characteristic.
-    """
-    try:
-        return await client.read_gatt_char(char)
-    except Exception as e:
-        print(f"Error: {e}")
-
-
-async def write_characteristic(client: BleakClient,
-                               char: Union[int, str],
-                               data: bytearray) -> None:
-    """
-    Write value to BLE client's specified GATT characteristic.
-    """
-    try:
-        await client.write_gatt_char(char, data)
-    except Exception as e:
-        print(f"Error: {e}")
-
-
-async def write_descriptor(client: BleakClient,
-                           desc: int,
-                           data: bytearray) -> None:
-    """
-    Write value to BLE client's specified GATT descriptor.
-    """
-    try:
-        await client.write_gatt_descriptor(desc, data)
-    except Exception as e:
-        print(f"Error: {e}")

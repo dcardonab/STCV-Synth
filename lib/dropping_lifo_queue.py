@@ -1,8 +1,13 @@
+"""
+LiFo Queue that drops previous items. This ensures that as new items are
+available, they will be used, optimizing realtime use.
+"""
+
 import asyncio
 from typing import Any
 
 
-class droppingLifoQueue(asyncio.LifoQueue):
+class DroppingLifoQueue(asyncio.LifoQueue):
     """
     Modification of the LifoQueue to drop older items as new items
     become available, thereby replacing them. This will prevent blockages,
