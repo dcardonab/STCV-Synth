@@ -245,8 +245,9 @@ class Menu:
         if item in self.value:
             cv2.rectangle(
                 overlay_img,
-                self.value[item][0],
-                self.value[item][2],
+                # The item 1 of the value tuple are the coordinates
+                self.value[1][0],
+                self.value[1][2],
                 (255, 255, 255),
                 cv2.FILLED,
             )
