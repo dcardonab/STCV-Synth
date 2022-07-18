@@ -272,8 +272,8 @@ async def find_st(firmware_name: str) -> Union[str, None]:
     the address. If not, offer the user the possibility to search again.
     """
     print("\n\tScanning BLE Devices")
-    search_for_st = True
-    while search_for_st:
+
+    while True:
         # Find SensorTile address
         address = await _scan_st_address(firmware_name)
 

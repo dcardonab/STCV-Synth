@@ -26,31 +26,50 @@ from lib.synth import Synth
 ### Input Arguments ###
 #######################
 
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(description="Synthesizer settings.")
 
 # Controller Args
-parser.add_argument("--st", action=argparse.BooleanOptionalAction, default=False)
-parser.add_argument("--cv", action=argparse.BooleanOptionalAction, default=True)
-parser.add_argument("--fps", action=argparse.BooleanOptionalAction, default=False)
+# To avoid using a BooleanOptionalAction, use the '--no' prefix:
+#   e.g.: --no-st
+parser.add_argument('--st', action=argparse.BooleanOptionalAction,
+                    default=False, help="SensorTile toggle")
+parser.add_argument('--cv', action=argparse.BooleanOptionalAction,
+                    default=True, help="Computer vision toggle")
+parser.add_argument('--fps', action=argparse.BooleanOptionalAction,
+                    default=False, help="Display FPS.")
 
 # Synth Args
-parser.add_argument("--sample_rate", type=int, default=48000)
-parser.add_argument("--tonal_center", default="A")
-parser.add_argument("--scale_mode", default="dorian")
-parser.add_argument("--base_multiplier", type=int, default=1)
-parser.add_argument("--octave_range", type=int, default=2)
-parser.add_argument("--bpm", type=int, default=100)
-parser.add_argument("--subdivision", type=int, default=16)
+parser.add_argument('-sr', '--sample_rate',
+                    type=int, default=48000,
+                    help="Set audio sample rate.")
+parser.add_argument('-tc', '--tonal_center',
+                    type=str, default="A",
+                    help="Set tonal center.")
+parser.add_argument('-sm', '--scale_mode',
+                    type=str, default="dorian",
+                    help="Scale mode.")
+parser.add_argument('-bm', '--base_multiplier',
+                    type=int, default=1,
+                    help="Multiplier to set bottom tonal center note.")
+parser.add_argument('-or', '--octave_range',
+                    type=int, default=2,
+                    help="Number of octaves.")
+parser.add_argument('-bpm', '--beats_per_min',
+                    type=int, default=100,
+                    help="BPM in milliseconds.")
+parser.add_argument('-sd', '--subdivision',
+                    type=int, default=16,
+                    help="Tempo subdivision.")
 
 args = parser.parse_args()
 
 synth_config = {
-    "sample_rate": 48000,
+    "sample_rate": args.sample_rate,
     "tonal_center": args.tonal_center,
     "scale_mode": args.scale_mode,
     "base_multiplier": args.base_multiplier,
     "octave_range": args.octave_range,
-    "bpm": args.bpm,
+    "bpm": args.beats_per_min,
     "subdivision": args.subdivision
 }
 
